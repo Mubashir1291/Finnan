@@ -1,8 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import OnBoadScreen from '../screens/authScreens/OnBoadScreen';
-import LoginScreen from '../screens/authScreens/LoginScreen';
-import SignupScreen from '../screens/authScreens/SignupScreen';
+import SignInScreen from '../screens/authScreens/SignInScreen';
 
 // import VerificationScreen from '../screens/authScreens/VerificationScreen';
 // import OTPScreen from '../screens/authScreens/OTPScreen';
@@ -19,10 +17,8 @@ const AuthStack = () => {
         animation: 'slide_from_right',
       }}
     >
-      <Stack.Screen name="LoginScreen" component={LoginScreen} />
-      <Stack.Screen name="OnBoadScreen" component={OnBoadScreen} />
+      <Stack.Screen name="SignInScreen" component={SignInScreen} />
 
-      <Stack.Screen name="SignupScreen" component={SignupScreen} />
       {/* <Stack.Screen name="ProfileScreenAuth" component={ProfileScreenAuth} />
       <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
       <Stack.Screen name="OTPScreen" component={OTPScreen} />

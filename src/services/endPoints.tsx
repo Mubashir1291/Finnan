@@ -1,0 +1,25 @@
+// const endPoints = {
+//   REGISTER: '/create-user',
+//   LOGIN: '/login',
+//   VERIFYOTP: '/verify-otp',
+//   SENDOTP: '/send-otp',
+//   FORGOTPASSWORD: '/forget-password',
+//   UPLOADREELS: '/upload-reels',
+//   GETALLFEED: '/get-all-reels',
+//   GETALLUSERREELS: '/get-user-profile-reels',
+//   UPLOAD_DOCS: '/upload-professional-doc',
+//   COMMENTPOST: '/post-comment',
+//   UNAPPROVED_USERS: '/get-all-unapproved-users',
+//   UPDATE_USER_STATUS: '/update-kyc-status',
+//   REEL_COMMENTS: '/get-reel-comments',
+//   HEARTLIKE: '/toggle-like-dislike',
+//   EMAIL_CHECK: '/check-email-exist',
+//   GET_USER: '/get-loggedIn-user',
+//   FOLLOW_USER: '/follow-user',
+//   UNFOLLOW_USER: '/unfollow-user',
+//   DOUBLETAP: '/double-tap-like',
+//   GET_FOLLOWER_REELS: '/get-following-reels',
+//   SHORTLIST: '/toggle-shortlist',
+// };
+
+// export { endPoints };
