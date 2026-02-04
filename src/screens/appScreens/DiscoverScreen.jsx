@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { MenuIcon, UserIcon } from '../../assets/Index';
 
 const { width } = Dimensions.get('window');
@@ -40,6 +41,7 @@ const DATA = [
 ];
 
 const DiscoverScreen = () => {
+  const navigation = useNavigation();
   const renderItem = ({ item }) => (
     <TouchableOpacity activeOpacity={0.9} style={styles.card}>
       <Image source={{ uri: item.image }} style={styles.image} />
@@ -64,13 +66,17 @@ const DiscoverScreen = () => {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <Image source={MenuIcon} style={styles.headerIcon} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>DISCOVER</Text>
 
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('Auth', { screen: 'SignInScreen' })
+          }
+        >
           <Image source={UserIcon} style={styles.headerIcon} />
         </TouchableOpacity>
       </View>

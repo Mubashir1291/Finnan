@@ -50,7 +50,11 @@ const DATA = [
   },
 ];
 
+import { useNavigation } from '@react-navigation/native';
+
 const ExploreScreen = () => {
+  const navigation = useNavigation();
+
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.card}>
       <Image source={{ uri: item.image }} style={styles.image} />
@@ -81,7 +85,7 @@ const ExploreScreen = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <Image
             source={MenuIcon}
             style={{
@@ -92,8 +96,13 @@ const ExploreScreen = () => {
             }}
           />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>EXPLORE</Text>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('Auth', { screen: 'SignInScreen' })
+          }
+        >
           <Image
             source={UserIcon}
             style={{

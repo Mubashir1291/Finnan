@@ -13,18 +13,34 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { HideIcon, UserIcon, ViewIcon, hide, view } from '../../assets/Index';
+import {
+  ArrowBackIcon,
+  HideIcon,
+  UserIcon,
+  ViewIcon,
+  hide,
+  view,
+} from '../../assets/Index';
 import BackButton from '../../components/BackButton';
 
-const SignInSchema = Yup.object().shape({
+const SignUpSchema = Yup.object().shape({
+  fullName: Yup.string().required('Full name is required'),
   email: Yup.string().email('Invalid email').required('Email is required'),
   password: Yup.string()
-    .min(6, 'Atleast 8 Character')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/,
+      'Password must contain uppercase, lowercase, number, and special character',
+    )
+    .min(8, 'Password must be at least 8 characters')
     .required('Password is required'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password'), null], 'Passwords must match')
+    .required('Confirm password is required'),
 });
 
-const SignInScreen = ({ navigation }) => {
+const SignUpScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -32,20 +48,26 @@ const SignInScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
+        {/* <Image source={ArrowBackIcon} style={styles.icon} /> */}
         <BackButton />
 
         <View style={styles.content}>
           <Text style={styles.brand}>FINNAN</Text>
-          <Text style={styles.welcome}>Welcome back</Text>
+          <Text style={styles.welcome}>Create account</Text>
 
           <Formik
-            initialValues={{ email: '', password: '' }}
-            validationSchema={SignInSchema}
+            initialValues={{
+              fullName: '',
+              email: '',
+              password: '',
+              confirmPassword: '',
+            }}
+            validationSchema={SignUpSchema}
             onSubmit={values => {
-              // TODO: replace with real auth
-              console.log('Sign in:', values);
-              Alert.alert('Signed in', `Welcome ${values.email}`);
-              navigation.navigate('Home');
+              // TODO: real sign up
+              console.log('Sign up:', values);
+              Alert.alert('Signed up', `Welcome ${values.fullName}`);
+              navigation.navigate('SignInScreen');
             }}
           >
             {({
@@ -57,6 +79,21 @@ const SignInScreen = ({ navigation }) => {
               touched,
             }) => (
               <View style={{ width: '100%' }}>
+                <TextInput
+                  placeholder="Full name"
+                  placeholderTextColor="#999"
+                  style={styles.input}
+                  autoComplete="name"
+                  textContentType="name"
+                  onChangeText={handleChange('fullName')}
+                  onBlur={handleBlur('fullName')}
+                  value={values.fullName}
+                />
+                {errors.fullName &&
+                  (touched.fullName || values.fullName.length > 0) && (
+                    <Text style={styles.error}>{errors.fullName}</Text>
+                  )}
+
                 <TextInput
                   placeholder="Email"
                   placeholderTextColor="#999"
@@ -79,8 +116,8 @@ const SignInScreen = ({ navigation }) => {
                     placeholderTextColor="#999"
                     style={[styles.input, { paddingRight: 50 }]}
                     secureTextEntry={!showPassword}
-                    autoComplete="password"
-                    textContentType="password"
+                    autoComplete="password-new"
+                    textContentType="newPassword"
                     onChangeText={handleChange('password')}
                     onBlur={handleBlur('password')}
                     value={values.password}
@@ -100,28 +137,45 @@ const SignInScreen = ({ navigation }) => {
                     <Text style={styles.error}>{errors.password}</Text>
                   )}
 
-                <TouchableOpacity
-                  onPress={() =>
-                    Alert.alert(
-                      'Forgot password',
-                      'Reset flow not implemented yet',
-                    )
-                  }
-                >
-                  <Text style={styles.forgot}>Forgot password?</Text>
-                </TouchableOpacity>
+                <View>
+                  <TextInput
+                    placeholder="Re-enter password"
+                    placeholderTextColor="#999"
+                    style={[styles.input, { paddingRight: 50 }]}
+                    secureTextEntry={!showConfirmPassword}
+                    autoComplete="password-new"
+                    textContentType="newPassword"
+                    onChangeText={handleChange('confirmPassword')}
+                    onBlur={handleBlur('confirmPassword')}
+                    value={values.confirmPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    <Image
+                      source={showConfirmPassword ? ViewIcon : HideIcon}
+                      style={styles.iconImage}
+                    />
+                  </TouchableOpacity>
+                </View>
+                {errors.confirmPassword &&
+                  (touched.confirmPassword ||
+                    values.confirmPassword.length > 0) && (
+                    <Text style={styles.error}>{errors.confirmPassword}</Text>
+                  )}
 
                 <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>Login</Text>
+                  <Text style={styles.buttonText}>Sign up</Text>
                 </TouchableOpacity>
               </View>
             )}
           </Formik>
         </View>
         <View style={styles.row}>
-          <Text style={{ color: '#999' }}>Don't have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('SignUpScreen')}>
-            <Text style={styles.link}> Sign up</Text>
+          <Text style={{ color: '#999' }}>Already have an account?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('SignInScreen')}>
+            <Text style={styles.link}> Login</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -129,15 +183,14 @@ const SignInScreen = ({ navigation }) => {
   );
 };
 
-export default SignInScreen;
+export default SignUpScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0B0B' },
-  header: { padding: 20, alignItems: 'center' },
+
   brand: { color: '#fff', fontSize: 26, fontWeight: '900' },
-  content: { padding: 20, alignItems: 'center', flex: 1 },
-  icon: { width: 80, height: 80, tintColor: '#fff', marginVertical: 12 },
-  welcome: { color: '#fff', fontSize: 22, fontWeight: '800', marginTop: 8 },
+  content: { paddingHorizontal: 15, alignItems: 'center', flex: 1 },
+  welcome: { color: '#fff', fontSize: 22, fontWeight: '800' },
   subtitle: { color: '#999', marginBottom: 20 },
   input: {
     backgroundColor: '#111',
@@ -155,10 +208,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   buttonText: { color: '#000', fontWeight: '800' },
-  forgot: { color: '#999', textAlign: 'right', marginTop: 6 },
-  row: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
+  row: { flexDirection: 'row', marginBottom: 20, justifyContent: 'center' },
   link: { color: 'white', fontWeight: '700' },
-  error: { color: '#ff7675', marginBottom: 8 },
+  error: { color: '#ff7675', marginBottom: 8, marginLeft: 10 },
+  icon: { width: 24, height: 24, tintColor: '#fff', marginBottom: 20 },
   eyeIcon: {
     position: 'absolute',
     right: 14,
