@@ -10,3 +10,4 @@ export const ArrowBackIcon = require('../assets/images/ArrowBack.png');
 export const HideIcon = require('../assets/images/Hide.png');
 
 export const ViewIcon = require('../assets/images/View.png');
+export const ArrowIcon = require('../assets/images/Arrow.png');

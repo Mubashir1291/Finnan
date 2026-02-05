@@ -3,11 +3,11 @@ import SplashScreen from '../screens/SplashScreen';
 import AuthStack from './AuthStack';
 import AppStack from './AppStack';
 
-// import { useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 const Routes = () => {
   const [showSplash, setShowSplash] = useState(true);
-
+const {isLogin} = useSelector((state) => state.user);
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
@@ -16,7 +16,7 @@ const Routes = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  return showSplash ? <SplashScreen /> : <AppStack />;
+  return showSplash ? <SplashScreen /> : isLogin ? <AppStack /> : <AuthStack />;
 };
 
 export default Routes;

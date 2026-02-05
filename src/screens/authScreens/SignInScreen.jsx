@@ -9,12 +9,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { HideIcon, UserIcon, ViewIcon, hide, view } from '../../assets/Index';
 import BackButton from '../../components/BackButton';
+import { LOGIN_ACCOUNT } from '../../services/AuthServices';
+import { useDispatch } from 'react-redux';
+import { setAccessToken, setIsLogin, setUserData } from '../../redux/Reducers/userReducer';
+import { store } from '../../redux/store';
 
 const SignInSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -25,6 +30,30 @@ const SignInSchema = Yup.object().shape({
 
 const SignInScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+
+  const handleLogin = async values => {
+    setIsLoading(true);
+    try {
+      const payload = { email: values.email, password: values.password };
+      const response = await LOGIN_ACCOUNT(payload);
+      console.log('Login response', response);
+      store.dispatch(setAccessToken(response?.auth?.access_token));
+      store.dispatch(setUserData({
+        email: values.email,
+
+        name: response?.user?.name || response?.data?.name || values.email.split('@')[0],
+      }));
+      store.dispatch(setIsLogin(true));
+      setIsLoading(false);
+      // No navigation needed - the ProfileOrSignIn wrapper will auto-switch to Profile
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
+      Alert.alert('Login failed', error.message || 'Something went wrong');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -41,12 +70,7 @@ const SignInScreen = ({ navigation }) => {
           <Formik
             initialValues={{ email: '', password: '' }}
             validationSchema={SignInSchema}
-            onSubmit={values => {
-              // TODO: replace with real auth
-              console.log('Sign in:', values);
-              Alert.alert('Signed in', `Welcome ${values.email}`);
-              navigation.navigate('Home');
-            }}
+            onSubmit={values => handleLogin(values)}
           >
             {({
               handleChange,
@@ -101,18 +125,21 @@ const SignInScreen = ({ navigation }) => {
                   )}
 
                 <TouchableOpacity
-                  onPress={() =>
-                    Alert.alert(
-                      'Forgot password',
-                      'Reset flow not implemented yet',
-                    )
-                  }
+                  onPress={() => navigation.navigate('ForgotPassword')}
                 >
                   <Text style={styles.forgot}>Forgot password?</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>Login</Text>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleSubmit}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#000" />
+                  ) : (
+                    <Text style={styles.buttonText}>Login</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             )}

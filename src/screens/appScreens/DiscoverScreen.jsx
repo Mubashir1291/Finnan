@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,57 +8,101 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
+  ImageBackground,
 } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { MenuIcon, UserIcon } from '../../assets/Index';
+import { ArrowIcon, MenuIcon, UserIcon } from '../../assets/Index';
+import axios from 'axios';
+import { Icon16, Icon18, Icon22 } from '../../utils/IconSizes';
+import { setIsLogin } from '../../redux/Reducers/userReducer';
+import { store } from '../../redux/store';
+import { useSelector } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width / 2 - 18;
 const CARD_HEIGHT = 260;
 
-const DATA = [
-  {
-    id: '1',
-    question: '"How do I create more progressive passes?"',
-    image: 'https://via.placeholder.com/500x700',
-  },
-  {
-    id: '2',
-    question: '"Explain how to defend 2v1 transitions for my role"',
-    image: 'https://via.placeholder.com/500x700',
-  },
-  {
-    id: '3',
-    question: '"What were my biggest mistakes last game?"',
-    image: 'https://via.placeholder.com/500x700',
-  },
-  {
-    id: '4',
-    question: '"How did I perform last match?"',
-    image: 'https://via.placeholder.com/500x700',
-  },
-];
-
 const DiscoverScreen = () => {
   const navigation = useNavigation();
+  const [prompts, setPrompts] = useState([]);
+  const [loading, setLoading] = useState(true);
+const {isLogin} = useSelector((state) => state.user);
+
+  useEffect(() => {
+    const fetchPrompts = async () => {
+      try {
+        const response = await axios.get(
+          'https://finnanftb.com/wp-json/getsearchprompts/v1/get-search-prompts',
+        );
+
+        console.log(response.data, 'here is response');
+        setPrompts(response.data);
+      } catch (error) {
+        console.error(
+          'Failed to fetch prompts:',
+          error.response?.data || error.message,
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrompts();
+  }, []);
+
   const renderItem = ({ item }) => (
     <TouchableOpacity activeOpacity={0.9} style={styles.card}>
-      <Image source={{ uri: item.image }} style={styles.image} />
+      <ImageBackground source={{ uri: item?.image }} style={styles.image}>
+        {/* Bottom Gradient Overlay */}
+        <View style={styles.overlay}>
+          <Text numberOfLines={2} style={styles.question}>
+            {item?.prompt_title}
+          </Text>
 
-      {/* Bottom Gradient Overlay */}
-      <View style={styles.overlay}>
-        <Text numberOfLines={3} style={styles.question}>
-          {item.question}
-        </Text>
-
-        {/* Arrow Button */}
-        <View style={styles.arrowButton}>
-          <Text style={styles.arrow}>↗</Text>
+          {/* Arrow Button */}
+          <View style={{ alignItems: 'flex-end', marginTop: 'auto' }}>
+            <View style={styles.arrowButton}>
+              <Image source={ArrowIcon} style={Icon22} />
+            </View>
+          </View>
         </View>
-      </View>
+      </ImageBackground>
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.openDrawer()}>
+            <Image source={MenuIcon} style={styles.headerIcon} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>DISCOVER</Text>
+  <TouchableOpacity
+           onPress={() =>
+          isLogin ? navigation.navigate('Profile') : store.dispatch(setIsLogin(false))
+           }
+         >
+           <Image
+             source={UserIcon}
+             style={{
+               height: 30,
+               width: 30,
+               tintColor: '#fff',
+               resizeMode: 'contain',
+             }}
+           />
+         </TouchableOpacity>
+        </View>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -82,9 +126,9 @@ const DiscoverScreen = () => {
       </View>
 
       <FlatList
-        data={DATA}
+        data={prompts}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        // keyExtractor={item => item.id.toString()}
         numColumns={2}
         showsVerticalScrollIndicator={false}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
@@ -100,6 +144,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0B0B0B',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   header: {
@@ -136,39 +185,33 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
 
   overlay: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    padding: 14,
+    flexDirection: 'column',
+    width: '90%',
+    height: 100,
+    padding: 10,
     backgroundColor: 'rgba(0,0,0,0.55)',
+    marginBottom: 12,
+    borderRadius: 12,
   },
 
   question: {
     color: '#fff',
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: 12,
     lineHeight: 20,
     paddingRight: 40,
   },
 
   arrowButton: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    width: 36,
-    height: 36,
+    width: 30,
+    height: 30,
     borderRadius: 8,
     backgroundColor: '#D8FF00', // neon yellow
     justifyContent: 'center',
     alignItems: 'center',
-  },
-
-  arrow: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#000',
   },
 });

@@ -1,5 +1,5 @@
-// import { Fetch } from './config';
-// // import { endPoints } from './endPoints';
+import { Fetch } from './config';
+import { endPoints } from './endPoints';
 
 // // export const REGISTER_ACCOUNT = (formData: FormData) => {
 // //   // console.log(formData, 'hello data');
@@ -11,11 +11,11 @@
 // //   const response = Fetch.post(`/api/v1/auth${endPoints.VERIFYOTP}`, payload);
 // //   return response;
 // // };
-// // export const LOGIN_ACCOUNT = (payload: any) => {
-// //   // console.log('this is calling login');
-// //   const response = Fetch.post(`/api/v1/auth${endPoints.LOGIN}`, payload);
-// //   return response;
-// // };
+export const LOGIN_ACCOUNT = (payload: any) => {
+  console.log(payload, 'this is calling login');
+  const response = Fetch.post(`/user${endPoints.LOGIN}`, payload);
+  return response;
+};
 
 // // export const SEND_OTP = (payload: any) => {
 // //   // console.log(payload, 'this is otp function');

@@ -14,7 +14,6 @@ import { ExploreIcon, MenuIcon, UserIcon } from '../../assets/Index';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width / 2 - 24;
-
 const DATA = [
   {
     id: '1',
@@ -51,9 +50,14 @@ const DATA = [
 ];
 
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { store } from '../../redux/store';
+import { setIsLogin } from '../../redux/Reducers/userReducer';
 
 const ExploreScreen = () => {
   const navigation = useNavigation();
+const {isLogin, accessToken} = useSelector((state) => state.user);
+console.log(accessToken , "here is tokennnnnnnnnnnnnnnnnnnnnnn");
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.card}>
@@ -100,7 +104,7 @@ const ExploreScreen = () => {
         <Text style={styles.headerTitle}>EXPLORE</Text>
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate('Auth', { screen: 'SignInScreen' })
+         isLogin ? navigation.navigate('Profile') : store.dispatch(setIsLogin(false))
           }
         >
           <Image

@@ -24,7 +24,7 @@ const DrawerContent = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>FINAN</Text>
+        <Text style={styles.title}>FINNAN</Text>
       </View>
 
       <View style={styles.itemsWrap}>
