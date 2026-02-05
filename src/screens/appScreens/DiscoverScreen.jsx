@@ -53,7 +53,7 @@ const {isLogin} = useSelector((state) => state.user);
   }, []);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity activeOpacity={0.9} style={styles.card}>
+    <TouchableOpacity onPress={()=>navigation.navigate('AgentScreen',{prompt:item?.prompt_title})} activeOpacity={0.9} style={styles.card}>
       <ImageBackground source={{ uri: item?.image }} style={styles.image}>
         {/* Bottom Gradient Overlay */}
         <View style={styles.overlay}>

@@ -29,7 +29,7 @@ import {
   UserBubbleColor,
   InputBgColor,
 } from '../../utils/Colors';
-import {StarsIcon, MenuIcon} from '../../assets/Index';
+import {StarsIcon, MenuIcon, CopyIcon} from '../../assets/Index';
 import {CHAT, SESSION_AI} from '../../services/AppServices';
 import {AI_CHATTING, userSession} from '../../services/config';
 import {store} from '../../redux/store';
@@ -42,7 +42,7 @@ const initialMessages = [
   },
 ];
 
-export default function AgentScreen({navigation}) {
+export default function AgentScreen({navigation,route}) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const listRef = useRef(null);
@@ -50,6 +50,30 @@ export default function AgentScreen({navigation}) {
   const [isLoading, setIsLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const {width, height} = useWindowDimensions();
+  const {prompt} = route.params || {};
+  console.log(prompt,'this is prompt');
+
+useEffect(() => {
+  const initChat = async () => {
+    let currentSession = session;
+    // If no session exists, create one
+    if (!currentSession) {
+      currentSession = await CreateSession();
+    }
+    
+    // If we have a prompt and a valid session, send the message
+    if (prompt && currentSession) {
+      // Small delay to ensure UI is ready
+      setTimeout(() => {
+        handleSend(prompt);
+      }, 500);
+    }
+  };
+
+  initChat();
+}, [prompt]);
+
+
 const CreateSession=async()=>{
   const obj={
     platform_id: "interdiscvr",
@@ -61,8 +85,10 @@ try {
   const response = await SESSION_AI(obj);
   console.log(response, 'this is session response');
   setSession(response?.session_id)
+  return response?.session_id;
 } catch (error) {
   console.log(error, 'this is session error');
+  return null;
 }
 }
 
@@ -77,15 +103,18 @@ CreateSession()
     }
   }, [messages]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = (text = null) => {
+    const textToSend = typeof text === 'string' ? text : input;
+    if (!textToSend.trim()) return;
+
     const userMsg = {
       id: String(Date.now()),
       role: 'user',
-      text: input.trim(),
+      text: textToSend.trim(),
     };
     setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    setInput('')
+    if (!text) setInput(''); // Only clear input if we used the input state
 
     const thinkingId = `thinking-${Date.now()}`;
     const thinkingMsg = {
@@ -382,7 +411,8 @@ CreateSession()
                   .trim();
                 Clipboard.setString(plainText);
               }}>
-              <Text style={styles.copyButtonText}>Copy</Text>
+              {/* <Text style={styles.copyButtonText}>Copy</Text> */}
+              <Image source={CopyIcon} style={styles.copyIcon} />
             </TouchableOpacity>
           )}
         </View>
@@ -404,9 +434,9 @@ CreateSession()
         </TouchableOpacity>
         <View style={{flex: 1}} />
         <TouchableOpacity activeOpacity={0.7}>
-          <View style={styles.chatIconContainer}>
-            <Text style={styles.chatIconText}>💬</Text>
-          </View>
+          {/* <View style={styles.chatIconContainer}>
+            <Image source={StarsIcon} style={styles.chatIconText} />
+          </View> */}
         </TouchableOpacity>
       </View>
 
@@ -628,6 +658,12 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  copyIcon: {
+    width: 18,
+    height: 18,
+    tintColor: HeadingColor,
+    resizeMode: 'contain',
   },
   copyButton: {
     marginTop: 6,
