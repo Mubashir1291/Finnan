@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -18,7 +18,11 @@ import { HideIcon, UserIcon, ViewIcon, hide, view } from '../../assets/Index';
 import BackButton from '../../components/BackButton';
 import { LOGIN_ACCOUNT } from '../../services/AuthServices';
 import { useDispatch } from 'react-redux';
-import { setAccessToken, setIsLogin, setUserData } from '../../redux/Reducers/userReducer';
+import {
+  setAccessToken,
+  setIsLogin,
+  setUserData,
+} from '../../redux/Reducers/userReducer';
 import { store } from '../../redux/store';
 
 const SignInSchema = Yup.object().shape({
@@ -40,18 +44,28 @@ const SignInScreen = ({ navigation }) => {
       const response = await LOGIN_ACCOUNT(payload);
       console.log('Login response', response);
       store.dispatch(setAccessToken(response?.auth?.access_token));
-      store.dispatch(setUserData({
-        email: values.email,
+      store.dispatch(
+        setUserData({
+          email: values.email,
 
-        name: response?.user?.name || response?.data?.name || values.email.split('@')[0],
-      }));
+          name:
+            response?.user?.name ||
+            response?.data?.name ||
+            values.email.split('@')[0],
+        }),
+      );
       store.dispatch(setIsLogin(true));
       setIsLoading(false);
       // No navigation needed - the ProfileOrSignIn wrapper will auto-switch to Profile
     } catch (error) {
       console.log(error);
       setIsLoading(false);
-      Alert.alert('Login failed', error.message || 'Something went wrong');
+      Toast.show({
+        type: 'error',
+        text1: 'Login failed',
+        text2: error.message || 'Something went wrong',
+        visibilityTime: 2500,
+      });
     }
   };
 
@@ -61,7 +75,7 @@ const SignInScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <BackButton />
+        {/* <BackButton /> */}
 
         <View style={styles.content}>
           <Text style={styles.brand}>FINNAN</Text>
@@ -152,6 +166,7 @@ const SignInScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      <Toast />
     </SafeAreaView>
   );
 };
@@ -164,10 +179,10 @@ const styles = StyleSheet.create({
   brand: { color: '#fff', fontSize: 26, fontWeight: '900' },
   content: { padding: 20, alignItems: 'center', flex: 1 },
   icon: { width: 80, height: 80, tintColor: '#fff', marginVertical: 12 },
-  welcome: { color: '#fff', fontSize: 22, fontWeight: '800', marginTop: 8 },
+  welcome: { color: '#fff', fontSize: 16, marginTop: 20, marginBottom: 20 },
   subtitle: { color: '#999', marginBottom: 20 },
   input: {
-    backgroundColor: '#111',
+    backgroundColor: '#1d1c1cff',
     color: '#fff',
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -182,7 +197,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   buttonText: { color: '#000', fontWeight: '800' },
-  forgot: { color: '#999', textAlign: 'right', marginTop: 6 },
+  forgot: { color: 'white', textAlign: 'right', marginTop: 6 },
   row: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
   link: { color: 'white', fontWeight: '700' },
   error: { color: '#ff7675', marginBottom: 8 },
@@ -193,8 +208,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   iconImage: {
-    width: 24,
-    height: 24,
+    width: 20,
+    height: 20,
     tintColor: '#999',
   },
 });

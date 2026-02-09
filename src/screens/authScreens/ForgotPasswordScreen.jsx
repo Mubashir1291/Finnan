@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 
@@ -33,11 +33,15 @@ const ForgotPasswordScreen = ({ navigation }) => {
           validationSchema={ForgotSchema}
           onSubmit={values => {
             // TODO: call API to send OTP
-            Alert.alert(
-              'OTP Sent',
-              `A verification code was sent to ${values.email}`,
-            );
-            navigation.navigate('OTPScreen', { email: values.email });
+            Toast.show({
+              type: 'success',
+              text1: 'OTP Sent',
+              text2: `A verification code was sent to ${values.email}`,
+              visibilityTime: 2500,
+            });
+            setTimeout(() => {
+              navigation.navigate('OTPScreen', { email: values.email });
+            }, 2000);
           }}
         >
           {({
@@ -71,12 +75,13 @@ const ForgotPasswordScreen = ({ navigation }) => {
                 style={{ marginTop: 12 }}
                 onPress={() => navigation.goBack()}
               >
-                <Text style={{ color: '#D8FF00' }}>Back to Sign in</Text>
+                <Text style={{ color: 'white' }}>Back to Sign in</Text>
               </TouchableOpacity>
             </View>
           )}
         </Formik>
       </View>
+      <Toast />
     </SafeAreaView>
   );
 };
@@ -91,7 +96,7 @@ const styles = StyleSheet.create({
   title: { color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 6 },
   subtitle: { color: '#999', marginBottom: 20 },
   input: {
-    backgroundColor: '#111',
+    backgroundColor: '#1d1c1cff',
     color: '#fff',
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -99,7 +104,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    backgroundColor: '#D8FF00',
+    backgroundColor: 'white',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',

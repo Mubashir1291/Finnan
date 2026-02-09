@@ -28,7 +28,7 @@ const DiscoverScreen = () => {
   const navigation = useNavigation();
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(true);
-const {isLogin} = useSelector((state) => state.user);
+  const { isLogin } = useSelector(state => state.user);
 
   useEffect(() => {
     const fetchPrompts = async () => {
@@ -53,7 +53,13 @@ const {isLogin} = useSelector((state) => state.user);
   }, []);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={()=>navigation.navigate('AgentScreen',{prompt:item?.prompt_title})} activeOpacity={0.9} style={styles.card}>
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate('AgentScreen', { prompt: item?.prompt_title })
+      }
+      activeOpacity={0.9}
+      style={styles.card}
+    >
       <ImageBackground source={{ uri: item?.image }} style={styles.image}>
         {/* Bottom Gradient Overlay */}
         <View style={styles.overlay}>
@@ -81,21 +87,23 @@ const {isLogin} = useSelector((state) => state.user);
             <Image source={MenuIcon} style={styles.headerIcon} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>DISCOVER</Text>
-  <TouchableOpacity
-           onPress={() =>
-          isLogin ? navigation.navigate('Profile') : store.dispatch(setIsLogin(false))
-           }
-         >
-           <Image
-             source={UserIcon}
-             style={{
-               height: 30,
-               width: 30,
-               tintColor: '#fff',
-               resizeMode: 'contain',
-             }}
-           />
-         </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              isLogin
+                ? navigation.navigate('Profile')
+                : store.dispatch(setIsLogin(false))
+            }
+          >
+            <Image
+              source={UserIcon}
+              style={{
+                height: 30,
+                width: 30,
+                tintColor: '#fff',
+                resizeMode: 'contain',
+              }}
+            />
+          </TouchableOpacity>
         </View>
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
@@ -118,7 +126,9 @@ const {isLogin} = useSelector((state) => state.user);
 
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate('Auth', { screen: 'SignInScreen' })
+            isLogin
+              ? navigation.navigate('Profile')
+              : store.dispatch(setIsLogin(false))
           }
         >
           <Image source={UserIcon} style={styles.headerIcon} />
@@ -167,8 +177,8 @@ const styles = StyleSheet.create({
   },
 
   headerIcon: {
-    width: 26,
-    height: 26,
+    width: 30,
+    height: 30,
     tintColor: '#fff',
     resizeMode: 'contain',
   },

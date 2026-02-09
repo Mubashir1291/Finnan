@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -29,10 +29,10 @@ import {
   UserBubbleColor,
   InputBgColor,
 } from '../../utils/Colors';
-import {StarsIcon, MenuIcon, CopyIcon} from '../../assets/Index';
-import {CHAT, SESSION_AI} from '../../services/AppServices';
-import {AI_CHATTING, userSession} from '../../services/config';
-import {store} from '../../redux/store';
+import { StarsIcon, MenuIcon, CopyIcon } from '../../assets/Index';
+import { CHAT, SESSION_AI } from '../../services/AppServices';
+import { AI_CHATTING, userSession } from '../../services/config';
+import { store } from '../../redux/store';
 
 const initialMessages = [
   {
@@ -42,64 +42,62 @@ const initialMessages = [
   },
 ];
 
-export default function AgentScreen({navigation,route}) {
+export default function AgentScreen({ navigation, route }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const listRef = useRef(null);
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
-  const {width, height} = useWindowDimensions();
-  const {prompt} = route.params || {};
-  console.log(prompt,'this is prompt');
+  const { width, height } = useWindowDimensions();
+  const { prompt } = route.params || {};
+  console.log(prompt, 'this is prompt');
 
-useEffect(() => {
-  const initChat = async () => {
-    let currentSession = session;
-    // If no session exists, create one
-    if (!currentSession) {
-      currentSession = await CreateSession();
-    }
-    
-    // If we have a prompt and a valid session, send the message
-    if (prompt && currentSession) {
-      // Small delay to ensure UI is ready
-      setTimeout(() => {
-        handleSend(prompt);
-      }, 500);
+  useEffect(() => {
+    const initChat = async () => {
+      let currentSession = session;
+      // If no session exists, create one
+      if (!currentSession) {
+        currentSession = await CreateSession();
+      }
+
+      // If we have a prompt and a valid session, send the message
+      if (prompt && currentSession) {
+        // Small delay to ensure UI is ready
+        setTimeout(() => {
+          handleSend(prompt);
+        }, 500);
+      }
+    };
+
+    initChat();
+  }, [prompt]);
+
+  const CreateSession = async () => {
+    const obj = {
+      platform_id: 'interdiscvr',
+      agent_id: 'ea6da159-7ecf-4e5b-a5bf-97b2990cc33c',
+      mode: 'agent',
+    };
+
+    try {
+      const response = await SESSION_AI(obj);
+      console.log(response, 'this is session response');
+      setSession(response?.session_id);
+      return response?.session_id;
+    } catch (error) {
+      console.log(error, 'this is session error');
+      return null;
     }
   };
 
-  initChat();
-}, [prompt]);
-
-
-const CreateSession=async()=>{
-  const obj={
-    platform_id: "interdiscvr",
-  agent_id: "ea6da159-7ecf-4e5b-a5bf-97b2990cc33c",
-  mode: "agent"
-}
-
-try {
-  const response = await SESSION_AI(obj);
-  console.log(response, 'this is session response');
-  setSession(response?.session_id)
-  return response?.session_id;
-} catch (error) {
-  console.log(error, 'this is session error');
-  return null;
-}
-}
-
-useEffect(()=>{
-CreateSession()
-
-},[])
+  useEffect(() => {
+    CreateSession();
+  }, []);
 
   useEffect(() => {
     if (listRef.current && messages.length) {
-      setTimeout(() => listRef.current.scrollToEnd({animated: true}), 100);
+      setTimeout(() => listRef.current.scrollToEnd({ animated: true }), 100);
     }
   }, [messages]);
 
@@ -113,7 +111,7 @@ CreateSession()
       text: textToSend.trim(),
     };
     setMessages(prev => [...prev, userMsg]);
-    setInput('')
+    setInput('');
     if (!text) setInput(''); // Only clear input if we used the input state
 
     const thinkingId = `thinking-${Date.now()}`;
@@ -131,7 +129,7 @@ CreateSession()
         setMessages(prev =>
           prev.map(m =>
             m.id === thinkingId
-              ? {...m, text: 'No AI session', thinking: false}
+              ? { ...m, text: 'No AI session', thinking: false }
               : m,
           ),
         );
@@ -215,7 +213,7 @@ CreateSession()
 
         setMessages(prev =>
           prev.map(m =>
-            m.id === thinkingId ? {...m, text: botText, thinking: false} : m,
+            m.id === thinkingId ? { ...m, text: botText, thinking: false } : m,
           ),
         );
       } catch (err) {
@@ -223,7 +221,7 @@ CreateSession()
         setMessages(prev =>
           prev.map(m =>
             m.id === thinkingId
-              ? {...m, text: 'Sorry, something went wrong.', thinking: false}
+              ? { ...m, text: 'Sorry, something went wrong.', thinking: false }
               : m,
           ),
         );
@@ -231,14 +229,11 @@ CreateSession()
     })();
   };
 
-  
-
   const handleStartNewConversation = () => {
     setMessages(initialMessages);
- 
   };
 
-  const renderItem = ({item}) => {
+  const renderItem = ({ item }) => {
     const isUser = item.role === 'user';
 
     let processedText = item.text;
@@ -276,13 +271,33 @@ CreateSession()
         lineHeight: 22,
         fontSize: 14,
       },
-      b: {fontWeight: 'bold', color: HeadingColor},
-      strong: {fontWeight: 'bold', color: HeadingColor},
-      h1: {fontSize: 20, fontWeight: 'bold', color: HeadingColor, marginVertical: 8},
-      h2: {fontSize: 18, fontWeight: 'bold', color: HeadingColor, marginVertical: 6},
-      h3: {fontSize: 16, fontWeight: 'bold', color: HeadingColor, marginVertical: 4},
-      h4: {fontSize: 15, fontWeight: 'bold', color: HeadingColor, marginVertical: 4},
-      table: {marginVertical: 12, width: '100%'},
+      b: { fontWeight: 'bold', color: HeadingColor },
+      strong: { fontWeight: 'bold', color: HeadingColor },
+      h1: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: HeadingColor,
+        marginVertical: 8,
+      },
+      h2: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: HeadingColor,
+        marginVertical: 6,
+      },
+      h3: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: HeadingColor,
+        marginVertical: 4,
+      },
+      h4: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: HeadingColor,
+        marginVertical: 4,
+      },
+      table: { marginVertical: 12, width: '100%' },
       tr: {
         flexDirection: 'row',
         borderBottomWidth: 1,
@@ -303,9 +318,9 @@ CreateSession()
         color: SubHeadingColor,
         minWidth: 80,
       },
-      ul: {marginVertical: 4, paddingLeft: 16},
-      li: {marginVertical: 2, color: HeadingColor},
-      a: {color: '#4da6ff', textDecorationLine: 'underline'},
+      ul: { marginVertical: 4, paddingLeft: 16 },
+      li: { marginVertical: 2, color: HeadingColor },
+      a: { color: '#4da6ff', textDecorationLine: 'underline' },
     };
 
     const imageGallery =
@@ -313,15 +328,17 @@ CreateSession()
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{marginVertical: 8}}
-          contentContainerStyle={{gap: 10}}>
+          style={{ marginVertical: 8 }}
+          contentContainerStyle={{ gap: 10 }}
+        >
           {images.map((imgSrc, index) => (
             <TouchableOpacity
               key={index}
               activeOpacity={0.8}
-              onPress={() => setPreviewImage(imgSrc)}>
+              onPress={() => setPreviewImage(imgSrc)}
+            >
               <Image
-                source={{uri: imgSrc}}
+                source={{ uri: imgSrc }}
                 style={styles.galleryImage}
                 resizeMode="cover"
               />
@@ -333,8 +350,8 @@ CreateSession()
     const htmlContent = textWithoutImages ? (
       <RenderHTML
         contentWidth={width - 80}
-        source={{html: textWithoutImages}}
-        baseStyle={{color: HeadingColor, fontSize: 14}}
+        source={{ html: textWithoutImages }}
+        baseStyle={{ color: HeadingColor, fontSize: 14 }}
         tagsStyles={tagsStyles}
         enableExperimentalBRCollapsing={true}
         ignoredDomTags={['script', 'style', 'head', 'meta', 'link']}
@@ -366,7 +383,8 @@ CreateSession()
             style={[
               styles.bubble,
               isUser ? styles.bubbleUser : styles.bubbleBot,
-            ]}>
+            ]}
+          >
             {item.thinking ? (
               <View style={styles.thinkingRow}>
                 <ActivityIndicator size="small" color={HeadingColor} />
@@ -379,7 +397,8 @@ CreateSession()
                   <ScrollView
                     horizontal={hasTable}
                     showsHorizontalScrollIndicator={hasTable}
-                    nestedScrollEnabled={true}>
+                    nestedScrollEnabled={true}
+                  >
                     {htmlContent}
                   </ScrollView>
                 ) : (
@@ -388,7 +407,8 @@ CreateSession()
                       style={[
                         styles.messageText,
                         isUser && styles.messageTextUser,
-                      ]}>
+                      ]}
+                    >
                       {textWithoutImages}
                     </Text>
                   )
@@ -410,7 +430,8 @@ CreateSession()
                   .replace(/&gt;/g, '>')
                   .trim();
                 Clipboard.setString(plainText);
-              }}>
+              }}
+            >
               {/* <Text style={styles.copyButtonText}>Copy</Text> */}
               <Image source={CopyIcon} style={styles.copyIcon} />
             </TouchableOpacity>
@@ -424,15 +445,17 @@ CreateSession()
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}>
+      keyboardVerticalOffset={90}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => navigation?.openDrawer?.() || navigation?.goBack?.()}>
+          onPress={() => navigation?.openDrawer?.() || navigation?.goBack?.()}
+        >
           <Image source={MenuIcon} style={styles.headerIcon} />
         </TouchableOpacity>
-        <View style={{flex: 1}} />
+        <View style={{ flex: 1 }} />
         <TouchableOpacity activeOpacity={0.7}>
           {/* <View style={styles.chatIconContainer}>
             <Image source={StarsIcon} style={styles.chatIconText} />
@@ -459,7 +482,8 @@ CreateSession()
             </Text>
             <TouchableOpacity
               style={styles.newConversationButton}
-              onPress={handleStartNewConversation}>
+              onPress={handleStartNewConversation}
+            >
               <Text style={styles.newConversationText}>
                 Start a new conversation
               </Text>
@@ -483,7 +507,8 @@ CreateSession()
         <TouchableOpacity
           style={styles.sendButton}
           onPress={handleSend}
-          disabled={isLoading}>
+          disabled={isLoading}
+        >
           {isLoading ? (
             <ActivityIndicator color={PrimaryColor} size="small" />
           ) : (
@@ -497,20 +522,26 @@ CreateSession()
         visible={!!previewImage}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setPreviewImage(null)}>
+        onRequestClose={() => setPreviewImage(null)}
+      >
         <Pressable
           style={styles.modalOverlay}
-          onPress={() => setPreviewImage(null)}>
+          onPress={() => setPreviewImage(null)}
+        >
           {previewImage && (
             <Image
-              source={{uri: previewImage}}
-              style={[styles.previewImage, {width: width - 40, height: height * 0.7}]}
+              source={{ uri: previewImage }}
+              style={[
+                styles.previewImage,
+                { width: width - 40, height: height * 0.7 },
+              ]}
               resizeMode="contain"
             />
           )}
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => setPreviewImage(null)}>
+            onPress={() => setPreviewImage(null)}
+          >
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
         </Pressable>

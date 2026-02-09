@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -66,8 +66,15 @@ const SignUpScreen = ({ navigation }) => {
             onSubmit={values => {
               // TODO: real sign up
               console.log('Sign up:', values);
-              Alert.alert('Signed up', `Welcome ${values.fullName}`);
-              navigation.navigate('SignInScreen');
+              Toast.show({
+                type: 'success',
+                text1: 'Signed up',
+                text2: `Welcome ${values.fullName}`,
+                visibilityTime: 2500,
+              });
+              setTimeout(() => {
+                navigation.navigate('SignInScreen');
+              }, 2000);
             }}
           >
             {({
@@ -179,6 +186,7 @@ const SignUpScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      <Toast />
     </SafeAreaView>
   );
 };

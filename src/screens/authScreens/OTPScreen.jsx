@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const OTPScreen = ({ navigation, route }) => {
   const { email } = route.params || {};
@@ -55,13 +55,25 @@ const OTPScreen = ({ navigation, route }) => {
       return;
     }
     setError('');
-    Alert.alert('Verified', 'Code accepted');
-    navigation.navigate('UpdatePassword', { email });
+    Toast.show({
+      type: 'success',
+      text1: 'Verified',
+      text2: 'Code accepted',
+      visibilityTime: 2500,
+    });
+    setTimeout(() => {
+      navigation.navigate('UpdatePassword', { email });
+    }, 2000);
   };
 
   const resend = () => {
     if (seconds > 0) return;
-    Alert.alert('Resent', 'Code resent (mock)');
+    Toast.show({
+      type: 'info',
+      text1: 'Resent',
+      text2: 'Code resent (mock)',
+      visibilityTime: 2500,
+    });
     setSeconds(60);
     setDigits(['', '', '', '']);
     refs.current[0]?.focus();
@@ -91,7 +103,7 @@ const OTPScreen = ({ navigation, route }) => {
                 style={styles.otpBox}
                 keyboardType="number-pad"
                 maxLength={1}
-                placeholder="-"
+                // placeholder="-"
                 placeholderTextColor="#444"
                 textAlign="center"
                 autoFocus={i === 0}
@@ -122,6 +134,7 @@ const OTPScreen = ({ navigation, route }) => {
           </View>
         </View>
       </View>
+      <Toast />
     </SafeAreaView>
   );
 };
@@ -144,7 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    backgroundColor: '#D8FF00',
+    backgroundColor: '#fff',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -164,9 +177,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#111',
     color: '#fff',
     fontSize: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
     textAlign: 'center',
+    textAlignVertical: 'center',
+    padding: 0,
     borderWidth: 1,
     borderColor: '#222',
   },

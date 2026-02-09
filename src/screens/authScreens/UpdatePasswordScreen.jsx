@@ -6,9 +6,9 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { HideIcon, ViewIcon } from '../../assets/Index';
@@ -28,7 +28,7 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.brand}>FINAN</Text>
+        <Text style={styles.brand}>FINNAN</Text>
       </View>
 
       <View style={styles.content}>
@@ -40,11 +40,15 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
           validationSchema={PasswordSchema}
           onSubmit={values => {
             // TODO: call API to update password
-            Alert.alert(
-              'Password updated',
-              'You can now sign in with your new password',
-            );
-            navigation.navigate('SignInScreen');
+            Toast.show({
+              type: 'success',
+              text1: 'Password updated',
+              text2: 'You can now sign in with your new password',
+              visibilityTime: 2500,
+            });
+            setTimeout(() => {
+              navigation.navigate('SignInScreen');
+            }, 2000);
           }}
         >
           {({
@@ -111,6 +115,7 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
           )}
         </Formik>
       </View>
+      <Toast />
     </SafeAreaView>
   );
 };
@@ -133,7 +138,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    backgroundColor: '#D8FF00',
+    backgroundColor: '#fff',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',

@@ -7,10 +7,10 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {useSelector, useDispatch} from 'react-redux';
-import {logout} from '../../redux/Reducers/userReducer';
-import {ArrowBackIcon} from '../../assets/Index';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../../redux/Reducers/userReducer';
+import { ArrowBackIcon } from '../../assets/Index';
 import {
   PrimaryColor,
   SecondaryColor,
@@ -19,7 +19,7 @@ import {
   BorderColor,
 } from '../../utils/Colors';
 
-const ProfileScreen = ({navigation}) => {
+const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const userData = useSelector(state => state.user.userData);
 
@@ -52,7 +52,7 @@ const ProfileScreen = ({navigation}) => {
           <Image source={ArrowBackIcon} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
-        <View style={{width: 24}} />
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.content}>
@@ -66,23 +66,23 @@ const ProfileScreen = ({navigation}) => {
         </View>
 
         {/* User Info Section */}
-        <View style={styles.infoSection}>
+        {/* <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Account Information</Text>
-          
+
           {userData?.name && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Name</Text>
               <Text style={styles.infoValue}>{userData.name}</Text>
             </View>
           )}
-          
+
           {userData?.email && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email</Text>
               <Text style={styles.infoValue}>{userData.email}</Text>
             </View>
           )}
-        </View>
+        </View> */}
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: SecondaryColor,
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
