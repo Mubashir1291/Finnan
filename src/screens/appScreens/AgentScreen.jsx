@@ -29,10 +29,11 @@ import {
   UserBubbleColor,
   InputBgColor,
 } from '../../utils/Colors';
-import { StarsIcon, MenuIcon, CopyIcon } from '../../assets/Index';
+import { StarsIcon, MenuIcon, CopyIcon, ThumbIcon } from '../../assets/Index';
 import { CHAT, SESSION_AI } from '../../services/AppServices';
 import { AI_CHATTING, userSession } from '../../services/config';
 import { store } from '../../redux/store';
+import { Rating } from 'react-native-ratings';
 
 const initialMessages = [
   {
@@ -51,6 +52,11 @@ export default function AgentScreen({ navigation, route }) {
   const [previewImage, setPreviewImage] = useState(null);
   const { width, height } = useWindowDimensions();
   const { prompt } = route.params || {};
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [selectedMessageForFeedback, setSelectedMessageForFeedback] =
+    useState(null);
+  const [rating, setRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
   console.log(prompt, 'this is prompt');
 
   useEffect(() => {
@@ -65,7 +71,7 @@ export default function AgentScreen({ navigation, route }) {
       if (prompt && currentSession) {
         // Small delay to ensure UI is ready
         setTimeout(() => {
-          handleSend(prompt);
+          handleSend(prompt, currentSession);
         }, 500);
       }
     };
@@ -91,9 +97,9 @@ export default function AgentScreen({ navigation, route }) {
     }
   };
 
-  useEffect(() => {
-    CreateSession();
-  }, []);
+  // useEffect(() => {
+  //   CreateSession();
+  // }, []);
 
   useEffect(() => {
     if (listRef.current && messages.length) {
@@ -101,7 +107,7 @@ export default function AgentScreen({ navigation, route }) {
     }
   }, [messages]);
 
-  const handleSend = (text = null) => {
+  const handleSend = (text = null, manualSessionId = null) => {
     const textToSend = typeof text === 'string' ? text : input;
     if (!textToSend.trim()) return;
 
@@ -124,7 +130,13 @@ export default function AgentScreen({ navigation, route }) {
     setMessages(prev => [...prev, thinkingMsg]);
 
     (async () => {
-      if (!session) {
+      let activeSession = manualSessionId || session;
+
+      if (!activeSession) {
+        activeSession = await CreateSession();
+      }
+
+      if (!activeSession) {
         console.warn('No session — cannot send to AI.');
         setMessages(prev =>
           prev.map(m =>
@@ -138,7 +150,7 @@ export default function AgentScreen({ navigation, route }) {
 
       const payload = {
         agent_id: 'ea6da159-7ecf-4e5b-a5bf-97b2990cc33c',
-        session_id: session,
+        session_id: activeSession,
         query: userMsg.text,
       };
 
@@ -231,6 +243,21 @@ export default function AgentScreen({ navigation, route }) {
 
   const handleStartNewConversation = () => {
     setMessages(initialMessages);
+  };
+
+  const handleFeedbackSubmit = () => {
+    console.log('Feedback submitted:', {
+      messageId: selectedMessageForFeedback?.id,
+      rating: rating,
+      feedback: feedbackText,
+    });
+    // TODO: Send feedback to your API
+
+    // Reset and close
+    setFeedbackModalVisible(false);
+    setRating(0);
+    setFeedbackText('');
+    setSelectedMessageForFeedback(null);
   };
 
   const renderItem = ({ item }) => {
@@ -419,22 +446,32 @@ export default function AgentScreen({ navigation, route }) {
 
           {/* Copy button for bot messages */}
           {!isUser && !item.thinking && item.id !== '1' && (
-            <TouchableOpacity
-              style={styles.copyButton}
-              onPress={() => {
-                const plainText = item.text
-                  .replace(/<[^>]*>/g, '')
-                  .replace(/&nbsp;/g, ' ')
-                  .replace(/&amp;/g, '&')
-                  .replace(/&lt;/g, '<')
-                  .replace(/&gt;/g, '>')
-                  .trim();
-                Clipboard.setString(plainText);
-              }}
-            >
-              {/* <Text style={styles.copyButtonText}>Copy</Text> */}
-              <Image source={CopyIcon} style={styles.copyIcon} />
-            </TouchableOpacity>
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => {
+                  const plainText = item.text
+                    .replace(/<[^>]*>/g, '')
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .trim();
+                  Clipboard.setString(plainText);
+                }}
+              >
+                <Image source={CopyIcon} style={styles.copyIcon} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => {
+                  // setSelectedMessageForFeedback(item);
+                  setFeedbackModalVisible(true);
+                }}
+              >
+                <Image source={ThumbIcon} style={styles.copyIcon} />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
@@ -546,6 +583,46 @@ export default function AgentScreen({ navigation, route }) {
           </TouchableOpacity>
         </Pressable>
       </Modal>
+
+      {/* Feedback Modal */}
+      <Modal
+        visible={feedbackModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFeedbackModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setFeedbackModalVisible(false)}
+        >
+          <Pressable style={styles.feedbackModalContainer}>
+            <Text style={styles.feedbackTitle}>Rate this response</Text>
+            <View style={styles.ratingContainer}>
+              <Rating
+                type="star"
+                ratingCount={5}
+                imageSize={45}
+                tintColor={InputBgColor}
+                onFinishRating={setRating}
+                startingValue={0}
+              />
+            </View>
+            <TextInput
+              style={styles.feedbackInput}
+              placeholder="Tell us more..."
+              placeholderTextColor={SubHeadingColor}
+              value={feedbackText}
+              onChangeText={setFeedbackText}
+            />
+            <TouchableOpacity
+              style={styles.submitFeedbackButton}
+              onPress={handleFeedbackSubmit}
+            >
+              <Text style={styles.submitFeedbackText}>Submit Feedback</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -590,6 +667,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 8,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
   mainTitle: {
     fontSize: 28,
@@ -696,15 +778,15 @@ const styles = StyleSheet.create({
     tintColor: HeadingColor,
     resizeMode: 'contain',
   },
-  copyButton: {
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
     alignSelf: 'flex-start',
   },
-  copyButtonText: {
-    color: SubHeadingColor,
-    fontSize: 12,
+  actionButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   inputRow: {
     flexDirection: 'row',
@@ -763,5 +845,53 @@ const styles = StyleSheet.create({
     color: HeadingColor,
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  feedbackModalContainer: {
+    width: '85%',
+    backgroundColor: InputBgColor,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: BorderColor,
+  },
+  feedbackTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: HeadingColor,
+    marginBottom: 20,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 12,
+  },
+  starIcon: {
+    width: 30,
+    height: 30,
+  },
+  feedbackInput: {
+    width: '100%',
+    height: 100,
+    backgroundColor: PrimaryColor,
+    borderRadius: 8,
+    padding: 12,
+    color: HeadingColor,
+    textAlignVertical: 'top',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: BorderColor,
+    fontSize: 14,
+  },
+  submitFeedbackButton: {
+    backgroundColor: SecondaryColor,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+  },
+  submitFeedbackText: {
+    color: PrimaryColor,
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

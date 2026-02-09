@@ -12,4 +12,4 @@ export const HideIcon = require('../assets/images/Hide.png');
 export const ViewIcon = require('../assets/images/View.png');
 export const ArrowIcon = require('../assets/images/Arrow.png');
 export const CopyIcon = require('../assets/images/copy.png');
-
+export const ThumbIcon = require('../assets/images/Thumb.png');
