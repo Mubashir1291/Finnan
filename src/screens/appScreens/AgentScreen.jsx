@@ -291,36 +291,38 @@ export default function AgentScreen({ navigation, route }) {
         color: HeadingColor,
         lineHeight: 22,
         fontSize: 14,
+        fontFamily: 'Helvetica',
       },
       p: {
         marginVertical: 4,
         color: HeadingColor,
         lineHeight: 22,
         fontSize: 14,
+        fontFamily: 'Helvetica',
       },
-      b: { fontWeight: 'bold', color: HeadingColor },
-      strong: { fontWeight: 'bold', color: HeadingColor },
+      b: { fontFamily: 'Helvetica-Bold', color: HeadingColor },
+      strong: { fontFamily: 'Helvetica-Bold', color: HeadingColor },
       h1: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
         color: HeadingColor,
         marginVertical: 8,
       },
       h2: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
         color: HeadingColor,
         marginVertical: 6,
       },
       h3: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
         color: HeadingColor,
         marginVertical: 4,
       },
       h4: {
         fontSize: 15,
-        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
         color: HeadingColor,
         marginVertical: 4,
       },
@@ -333,7 +335,7 @@ export default function AgentScreen({ navigation, route }) {
       th: {
         paddingVertical: 8,
         paddingHorizontal: 8,
-        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
         fontSize: 13,
         color: HeadingColor,
         minWidth: 80,
@@ -344,10 +346,15 @@ export default function AgentScreen({ navigation, route }) {
         fontSize: 13,
         color: SubHeadingColor,
         minWidth: 80,
+        fontFamily: 'Helvetica',
       },
-      ul: { marginVertical: 4, paddingLeft: 16 },
-      li: { marginVertical: 2, color: HeadingColor },
-      a: { color: '#4da6ff', textDecorationLine: 'underline' },
+      ul: { marginVertical: 4, paddingLeft: 16, fontFamily: 'Helvetica' },
+      li: { marginVertical: 2, color: HeadingColor, fontFamily: 'Helvetica' },
+      a: {
+        color: '#4da6ff',
+        textDecorationLine: 'underline',
+        fontFamily: 'Helvetica',
+      },
     };
 
     const imageGallery =
@@ -675,7 +682,7 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     color: HeadingColor,
     letterSpacing: 1,
   },
@@ -690,6 +697,7 @@ const styles = StyleSheet.create({
     color: SubHeadingColor,
     lineHeight: 20,
     marginBottom: 16,
+    fontFamily: 'Helvetica',
   },
   newConversationButton: {
     alignSelf: 'flex-start',
@@ -702,6 +710,7 @@ const styles = StyleSheet.create({
   newConversationText: {
     color: HeadingColor,
     fontSize: 14,
+    fontFamily: 'Helvetica',
   },
   listContent: {
     padding: 16,
@@ -753,6 +762,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: HeadingColor,
     lineHeight: 20,
+    fontFamily: 'Helvetica',
   },
   messageTextUser: {
     color: HeadingColor,
@@ -765,6 +775,7 @@ const styles = StyleSheet.create({
   thinkingText: {
     color: SubHeadingColor,
     fontSize: 14,
+    fontFamily: 'Helvetica',
   },
   galleryImage: {
     width: 180,
@@ -807,6 +818,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     color: HeadingColor,
     fontSize: 14,
+    fontFamily: 'Helvetica',
   },
   sendButton: {
     width: 44,
@@ -844,7 +856,7 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: HeadingColor,
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
   },
   feedbackModalContainer: {
     width: '85%',
@@ -857,7 +869,7 @@ const styles = StyleSheet.create({
   },
   feedbackTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     color: HeadingColor,
     marginBottom: 20,
   },
@@ -882,6 +894,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BorderColor,
     fontSize: 14,
+    fontFamily: 'Helvetica',
   },
   submitFeedbackButton: {
     backgroundColor: SecondaryColor,
@@ -891,7 +904,7 @@ const styles = StyleSheet.create({
   },
   submitFeedbackText: {
     color: PrimaryColor,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     fontSize: 16,
   },
 });

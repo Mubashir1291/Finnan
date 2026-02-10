@@ -56,8 +56,8 @@ import { setIsLogin } from '../../redux/Reducers/userReducer';
 
 const ExploreScreen = () => {
   const navigation = useNavigation();
-const {isLogin, accessToken} = useSelector((state) => state.user);
-console.log(accessToken , "here is tokennnnnnnnnnnnnnnnnnnnnnn");
+  const { isLogin, accessToken } = useSelector(state => state.user);
+  console.log(accessToken, 'here is tokennnnnnnnnnnnnnnnnnnnnnn');
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.card}>
@@ -104,7 +104,9 @@ console.log(accessToken , "here is tokennnnnnnnnnnnnnnnnnnnnnn");
         <Text style={styles.headerTitle}>EXPLORE</Text>
         <TouchableOpacity
           onPress={() =>
-         isLogin ? navigation.navigate('Profile') : store.dispatch(setIsLogin(false))
+            isLogin
+              ? navigation.navigate('Profile')
+              : store.dispatch(setIsLogin(false))
           }
         >
           <Image
@@ -150,7 +152,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'Helvetica-Bold',
   },
   icon: {
     color: '#fff',
@@ -181,7 +183,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Helvetica-Bold',
   },
 
   duration: {
@@ -196,6 +198,7 @@ const styles = StyleSheet.create({
   durationText: {
     color: '#fff',
     fontSize: 11,
+    fontFamily: 'Helvetica',
   },
 
   textContainer: {
@@ -204,7 +207,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#fff',
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Helvetica-Bold',
   },
   authorBadge: {
     marginTop: 6,
@@ -217,5 +220,6 @@ const styles = StyleSheet.create({
   authorText: {
     color: 'white',
     fontSize: 10,
+    fontFamily: 'Helvetica',
   },
 });

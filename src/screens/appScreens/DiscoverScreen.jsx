@@ -172,8 +172,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontFamily: 'Helvetica-Bold',
   },
 
   headerIcon: {
@@ -214,6 +213,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 20,
     paddingRight: 40,
+    fontFamily: 'Helvetica-Bold',
   },
 
   arrowButton: {

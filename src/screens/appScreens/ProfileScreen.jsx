@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Helvetica-Bold',
     color: HeadingColor,
   },
   content: {
@@ -140,25 +140,26 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 36,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     color: PrimaryColor,
   },
   userName: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     color: HeadingColor,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
     color: SubHeadingColor,
+    fontFamily: 'Helvetica-light',
   },
   infoSection: {
     marginBottom: 40,
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Helvetica-Bold',
     color: SubHeadingColor,
     marginBottom: 16,
     textTransform: 'uppercase',
@@ -173,11 +174,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: SubHeadingColor,
     marginBottom: 4,
+    fontFamily: 'Helvetica',
   },
   infoValue: {
     fontSize: 16,
     color: HeadingColor,
-    fontWeight: '500',
+    fontFamily: 'Helvetica',
   },
   logoutButton: {
     backgroundColor: '#FF3B30',
@@ -189,6 +191,6 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'Helvetica-Bold',
   },
 });

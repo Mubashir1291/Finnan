@@ -128,7 +128,11 @@ const OTPScreen = ({ navigation, route }) => {
               </Text>
             ) : (
               <TouchableOpacity onPress={resend}>
-                <Text style={{ color: '#D8FF00' }}>Resend code</Text>
+                <Text
+                  style={{ color: '#D8FF00', fontFamily: 'Helvetica-Bold' }}
+                >
+                  Resend code
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -144,10 +148,15 @@ export default OTPScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0B0B' },
   header: { padding: 20, alignItems: 'center' },
-  brand: { color: '#fff', fontSize: 26, fontWeight: '900' },
+  brand: { color: '#fff', fontSize: 26, fontFamily: 'Helvetica-Bold' },
   content: { padding: 20 },
-  title: { color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 6 },
-  subtitle: { color: '#999', marginBottom: 20 },
+  title: {
+    color: '#fff',
+    fontSize: 20,
+    fontFamily: 'Helvetica-Bold',
+    marginBottom: 6,
+  },
+  subtitle: { color: '#999', marginBottom: 20, fontFamily: 'Helvetica' },
   input: {
     backgroundColor: '#111',
     color: '#fff',
@@ -155,6 +164,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     marginBottom: 10,
+    fontFamily: 'Helvetica',
   },
   button: {
     backgroundColor: '#fff',
@@ -163,8 +173,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 6,
   },
-  buttonText: { color: '#000', fontWeight: '800' },
-  error: { color: '#ff7675', marginBottom: 8 },
+  buttonText: { color: '#000', fontFamily: 'Helvetica-Bold' },
+  error: { color: '#ff7675', marginBottom: 8, fontFamily: 'Helvetica' },
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -182,6 +192,7 @@ const styles = StyleSheet.create({
     padding: 0,
     borderWidth: 1,
     borderColor: '#222',
+    fontFamily: 'Helvetica',
   },
-  timerText: { color: '#999' },
+  timerText: { color: '#999', fontFamily: 'Helvetica' },
 });

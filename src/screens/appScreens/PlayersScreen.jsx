@@ -35,6 +35,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { color: '#fff', fontSize: 22, fontWeight: '800' },
-  sub: { color: '#ccc', marginTop: 8 },
+  title: { color: '#fff', fontSize: 22, fontFamily: 'Helvetica-Bold' },
+  sub: { color: '#ccc', marginTop: 8, fontFamily: 'Helvetica-light' },
 });

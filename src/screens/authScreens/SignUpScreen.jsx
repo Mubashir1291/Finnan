@@ -180,7 +180,9 @@ const SignUpScreen = ({ navigation }) => {
           </Formik>
         </View>
         <View style={styles.row}>
-          <Text style={{ color: '#999' }}>Already have an account?</Text>
+          <Text style={{ color: '#999', fontFamily: 'Helvetica' }}>
+            Already have an account?
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate('SignInScreen')}>
             <Text style={styles.link}> Login</Text>
           </TouchableOpacity>
@@ -196,10 +198,10 @@ export default SignUpScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0B0B' },
 
-  brand: { color: '#fff', fontSize: 26, fontWeight: '900' },
+  brand: { color: '#fff', fontSize: 26, fontFamily: 'Helvetica-Bold' },
   content: { paddingHorizontal: 15, alignItems: 'center', flex: 1 },
-  welcome: { color: '#fff', fontSize: 22, fontWeight: '800' },
-  subtitle: { color: '#999', marginBottom: 20 },
+  welcome: { color: '#fff', fontSize: 22, fontFamily: 'Helvetica-Bold' },
+  subtitle: { color: '#999', marginBottom: 20, fontFamily: 'Helvetica' },
   input: {
     backgroundColor: '#111',
     color: '#fff',
@@ -207,6 +209,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     marginBottom: 10,
+    fontFamily: 'Helvetica',
   },
   button: {
     backgroundColor: 'white',
@@ -215,10 +218,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 12,
   },
-  buttonText: { color: '#000', fontWeight: '800' },
+  buttonText: { color: '#000', fontFamily: 'Helvetica-Bold' },
   row: { flexDirection: 'row', marginBottom: 20, justifyContent: 'center' },
-  link: { color: 'white', fontWeight: '700' },
-  error: { color: '#ff7675', marginBottom: 8, marginLeft: 10 },
+  link: { color: 'white', fontFamily: 'Helvetica-Bold' },
+  error: {
+    color: '#ff7675',
+    marginBottom: 8,
+    marginLeft: 10,
+    fontFamily: 'Helvetica',
+  },
   icon: { width: 24, height: 24, tintColor: '#fff', marginBottom: 20 },
   eyeIcon: {
     position: 'absolute',
