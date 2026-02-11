@@ -7,10 +7,12 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon10 from '../../utils/IconSizes';
 import { ExploreIcon, MenuIcon, UserIcon } from '../../assets/Index';
+import { S, VS, MS } from '../../utils/Responsive';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width / 2 - 24;
@@ -21,7 +23,8 @@ const DATA = [
     tag: 'Highlight',
     duration: '0:35',
     author: 'Hamza Igamane',
-    image: 'https://via.placeholder.com/300x500',
+    image:
+      'https://i.pinimg.com/736x/79/2d/e5/792de5a6528fe498b4545da58ae8c5f1.jpg',
   },
   {
     id: '2',
@@ -29,7 +32,8 @@ const DATA = [
     tag: 'Goal',
     duration: '0:32',
     author: 'Rodrigo Mora',
-    image: 'https://via.placeholder.com/300x500',
+    image:
+      'https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-2256403885-20260129110315929.jpg?c=16x9&q=h_438,w_780,c_fill',
   },
   {
     id: '3',
@@ -37,7 +41,8 @@ const DATA = [
     tag: 'Goal',
     duration: '0:19',
     author: 'Ethan Nwaneri',
-    image: 'https://via.placeholder.com/300x500',
+    image:
+      'https://rukminim2.flixcart.com/image/480/480/kvr01ow0/wall-decoration/e/y/w/football-form-cristiano-ronaldo-player-wallpaper-poster-1-original-imag8kvtgzmmqrge.jpeg?q=90',
   },
   {
     id: '4',
@@ -45,7 +50,8 @@ const DATA = [
     tag: 'Goal',
     duration: '0:37',
     author: 'Harvey Elliott',
-    image: 'https://via.placeholder.com/300x500',
+    image:
+      'https://static.toiimg.com/thumb/msid-123705146,imgsize-121032,width-400,resizemode-4/hkg-1-0-ind-2.jpg',
   },
 ];
 
@@ -61,27 +67,27 @@ const ExploreScreen = () => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.card}>
-      <Image source={{ uri: item.image }} style={styles.image} />
-
-      {/* Tag */}
-      <View style={styles.tag}>
-        <Text style={styles.tagText}>{item.tag}</Text>
-      </View>
-
-      {/* Duration */}
-      <View style={styles.duration}>
-        <Text style={styles.durationText}>{item.duration}</Text>
-      </View>
-
-      {/* Text */}
-      <View style={styles.textContainer}>
-        <Text numberOfLines={2} style={styles.title}>
-          {item.title}
-        </Text>
-        <View style={styles.authorBadge}>
-          <Text style={styles.authorText}>{item.author}</Text>
+      <ImageBackground source={{ uri: item.image }} style={styles.image}>
+        {/* Tag */}
+        <View style={styles.tag}>
+          <Text style={styles.tagText}>{item.tag}</Text>
         </View>
-      </View>
+
+        {/* Duration */}
+        <View style={styles.duration}>
+          <Text style={styles.durationText}>{item.duration}</Text>
+        </View>
+
+        {/* Text */}
+        <View style={styles.textContainer}>
+          <Text numberOfLines={2} style={styles.title}>
+            {item.title}
+          </Text>
+          <View style={styles.authorBadge}>
+            <Text style={styles.authorText}>{item.author}</Text>
+          </View>
+        </View>
+      </ImageBackground>
     </TouchableOpacity>
   );
 
@@ -93,8 +99,8 @@ const ExploreScreen = () => {
           <Image
             source={MenuIcon}
             style={{
-              height: 30,
-              width: 30,
+              height: VS(30),
+              width: S(30),
               tintColor: '#fff',
               resizeMode: 'contain',
             }}
@@ -112,8 +118,8 @@ const ExploreScreen = () => {
           <Image
             source={UserIcon}
             style={{
-              height: 30,
-              width: 30,
+              height: VS(30),
+              width: S(30),
               tintColor: '#fff',
               resizeMode: 'contain',
             }}
@@ -127,7 +133,7 @@ const ExploreScreen = () => {
         keyExtractor={item => item.id}
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
-        contentContainerStyle={{ padding: 12 }}
+        contentContainerStyle={{ padding: MS(12) }}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -143,83 +149,86 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    height: 56,
-    paddingHorizontal: 16,
+    height: VS(56),
+    paddingHorizontal: S(16),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: MS(18),
     fontFamily: 'Helvetica-Bold',
   },
   icon: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: MS(22),
   },
 
   card: {
     width: CARD_WIDTH,
-    borderRadius: 14,
+    borderRadius: MS(14),
     overflow: 'hidden',
     backgroundColor: '#111',
-    marginBottom: 16,
+    marginBottom: VS(16),
   },
 
   image: {
     width: '100%',
-    height: 220,
+    height: VS(220),
+    justifyContent: 'flex-end',
   },
 
   tag: {
     position: 'absolute',
-    top: 8,
-    left: 8,
+    top: VS(8),
+    left: S(8),
     backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: S(10),
+    paddingVertical: VS(4),
+    borderRadius: MS(8),
   },
   tagText: {
-    fontSize: 12,
+    fontSize: MS(12),
     fontFamily: 'Helvetica-Bold',
   },
 
   duration: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: VS(8),
+    right: S(8),
     backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: S(8),
+    paddingVertical: VS(4),
+    borderRadius: MS(8),
   },
   durationText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: MS(11),
     fontFamily: 'Helvetica',
   },
 
   textContainer: {
-    padding: 10,
+    padding: MS(10),
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   title: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: MS(13),
     fontFamily: 'Helvetica-Bold',
+    lineHeight: MS(15),
   },
   authorBadge: {
-    marginTop: 6,
+    marginTop: VS(6),
     backgroundColor: '#1F1F1F',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: S(10),
+    paddingVertical: VS(4),
+    borderRadius: MS(8),
     alignSelf: 'flex-start',
   },
   authorText: {
     color: 'white',
-    fontSize: 10,
+    fontSize: MS(10),
     fontFamily: 'Helvetica',
   },
 });

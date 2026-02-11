@@ -34,6 +34,7 @@ import { CHAT, SESSION_AI } from '../../services/AppServices';
 import { AI_CHATTING, userSession } from '../../services/config';
 import { store } from '../../redux/store';
 import { Rating } from 'react-native-ratings';
+import { MS, S, VS } from '../../utils/Responsive';
 
 const initialMessages = [
   {
@@ -82,7 +83,7 @@ export default function AgentScreen({ navigation, route }) {
   const CreateSession = async () => {
     const obj = {
       platform_id: 'interdiscvr',
-      agent_id: 'ea6da159-7ecf-4e5b-a5bf-97b2990cc33c',
+      agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
       mode: 'agent',
     };
 
@@ -149,7 +150,7 @@ export default function AgentScreen({ navigation, route }) {
       }
 
       const payload = {
-        agent_id: 'ea6da159-7ecf-4e5b-a5bf-97b2990cc33c',
+        agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
         session_id: activeSession,
         query: userMsg.text,
       };
@@ -290,66 +291,74 @@ export default function AgentScreen({ navigation, route }) {
       body: {
         color: HeadingColor,
         lineHeight: 22,
-        fontSize: 14,
+        fontSize: MS(14),
         fontFamily: 'Helvetica',
       },
       p: {
-        marginVertical: 4,
+        marginVertical: VS(4),
         color: HeadingColor,
         lineHeight: 22,
-        fontSize: 14,
+        fontSize: MS(14),
         fontFamily: 'Helvetica',
       },
       b: { fontFamily: 'Helvetica-Bold', color: HeadingColor },
       strong: { fontFamily: 'Helvetica-Bold', color: HeadingColor },
       h1: {
-        fontSize: 20,
+        fontSize: MS(20),
         fontFamily: 'Helvetica-Bold',
         color: HeadingColor,
-        marginVertical: 8,
+        marginVertical: VS(8),
       },
       h2: {
-        fontSize: 18,
+        fontSize: MS(18),
         fontFamily: 'Helvetica-Bold',
         color: HeadingColor,
-        marginVertical: 6,
+        marginVertical: VS(6),
       },
       h3: {
-        fontSize: 16,
+        fontSize: MS(16),
         fontFamily: 'Helvetica-Bold',
         color: HeadingColor,
-        marginVertical: 4,
+        marginVertical: VS(4),
       },
       h4: {
-        fontSize: 15,
+        fontSize: MS(15),
         fontFamily: 'Helvetica-Bold',
         color: HeadingColor,
-        marginVertical: 4,
+        marginVertical: VS(4),
       },
-      table: { marginVertical: 12, width: '100%' },
+      table: { marginVertical: VS(12), width: '100%' },
       tr: {
         flexDirection: 'row',
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255,255,255,0.1)',
       },
       th: {
-        paddingVertical: 8,
-        paddingHorizontal: 8,
+        paddingVertical: VS(8),
+        paddingHorizontal: S(8),
         fontFamily: 'Helvetica-Bold',
-        fontSize: 13,
+        fontSize: MS(13),
         color: HeadingColor,
-        minWidth: 80,
+        minWidth: S(80),
       },
       td: {
-        paddingVertical: 8,
-        paddingHorizontal: 8,
-        fontSize: 13,
+        paddingVertical: VS(8),
+        paddingHorizontal: S(8),
+        fontSize: MS(13),
         color: SubHeadingColor,
-        minWidth: 80,
+        minWidth: S(80),
         fontFamily: 'Helvetica',
       },
-      ul: { marginVertical: 4, paddingLeft: 16, fontFamily: 'Helvetica' },
-      li: { marginVertical: 2, color: HeadingColor, fontFamily: 'Helvetica' },
+      ul: {
+        marginVertical: VS(4),
+        paddingLeft: S(16),
+        fontFamily: 'Helvetica',
+      },
+      li: {
+        marginVertical: VS(2),
+        color: HeadingColor,
+        fontFamily: 'Helvetica',
+      },
       a: {
         color: '#4da6ff',
         textDecorationLine: 'underline',
@@ -362,7 +371,7 @@ export default function AgentScreen({ navigation, route }) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ marginVertical: 8 }}
+          style={{ marginVertical: VS(8) }}
           contentContainerStyle={{ gap: 10 }}
         >
           {images.map((imgSrc, index) => (
@@ -385,7 +394,7 @@ export default function AgentScreen({ navigation, route }) {
       <RenderHTML
         contentWidth={width - 80}
         source={{ html: textWithoutImages }}
-        baseStyle={{ color: HeadingColor, fontSize: 14 }}
+        baseStyle={{ color: HeadingColor, fontSize: MS(14) }}
         tagsStyles={tagsStyles}
         enableExperimentalBRCollapsing={true}
         ignoredDomTags={['script', 'style', 'head', 'meta', 'link']}
@@ -488,8 +497,8 @@ export default function AgentScreen({ navigation, route }) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -577,7 +586,7 @@ export default function AgentScreen({ navigation, route }) {
               source={{ uri: previewImage }}
               style={[
                 styles.previewImage,
-                { width: width - 40, height: height * 0.7 },
+                { width: width - S(40), height: height * 0.7 },
               ]}
               resizeMode="contain"
             />
@@ -642,101 +651,101 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: S(16),
+    paddingVertical: VS(12),
     backgroundColor: PrimaryColor,
   },
   headerIcon: {
-    width: 24,
-    height: 24,
+    width: S(24),
+    height: VS(24),
     tintColor: HeadingColor,
     resizeMode: 'contain',
   },
   chatIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: S(36),
+    height: VS(36),
+    borderRadius: MS(18),
     borderWidth: 1,
     borderColor: BorderColor,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chatIconText: {
-    fontSize: 16,
+    fontSize: MS(16),
   },
   headerSection: {
-    paddingHorizontal: 4,
-    paddingTop: 8,
-    paddingBottom: 20,
+    paddingHorizontal: S(4),
+    paddingTop: VS(8),
+    paddingBottom: VS(20),
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    gap: MS(8),
+    marginBottom: VS(8),
   },
   ratingContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: VS(20),
   },
   mainTitle: {
-    fontSize: 28,
+    fontSize: MS(28),
     fontFamily: 'Helvetica-Bold',
     color: HeadingColor,
     letterSpacing: 1,
   },
   titleIcon: {
-    width: 24,
-    height: 24,
+    width: S(24),
+    height: VS(24),
     tintColor: SecondaryColor,
     resizeMode: 'contain',
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: MS(14),
     color: SubHeadingColor,
-    lineHeight: 20,
-    marginBottom: 16,
+    lineHeight: VS(20),
+    marginBottom: VS(16),
     fontFamily: 'Helvetica',
   },
   newConversationButton: {
     alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: BorderColor,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    borderRadius: MS(20),
+    paddingHorizontal: S(16),
+    paddingVertical: VS(10),
   },
   newConversationText: {
     color: HeadingColor,
-    fontSize: 14,
+    fontSize: MS(14),
     fontFamily: 'Helvetica',
   },
   listContent: {
-    padding: 16,
-    paddingBottom: 20,
+    padding: MS(16),
+    paddingBottom: VS(20),
   },
   messageRow: {
     flexDirection: 'row',
-    marginVertical: 8,
+    marginVertical: VS(8),
     alignItems: 'flex-start',
   },
   messageRowRight: {
     justifyContent: 'flex-end',
   },
   botIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: S(36),
+    height: VS(36),
+    borderRadius: MS(18),
     borderWidth: 1,
     borderColor: BorderColor,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: S(10),
   },
   botIcon: {
-    width: 18,
-    height: 18,
+    width: S(18),
+    height: VS(18),
     tintColor: HeadingColor,
     resizeMode: 'contain',
   },
@@ -745,21 +754,21 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   bubble: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 16,
+    paddingHorizontal: S(14),
+    paddingVertical: VS(12),
+    borderRadius: MS(16),
   },
   bubbleBot: {
     backgroundColor: BotBubbleColor,
-    borderTopLeftRadius: 4,
+    borderTopLeftRadius: MS(4),
   },
   bubbleUser: {
     backgroundColor: UserBubbleColor,
-    borderTopRightRadius: 4,
+    borderTopRightRadius: MS(4),
     alignSelf: 'flex-end',
   },
   messageText: {
-    fontSize: 14,
+    fontSize: MS(14),
     color: HeadingColor,
     lineHeight: 20,
     fontFamily: 'Helvetica',
@@ -770,67 +779,67 @@ const styles = StyleSheet.create({
   thinkingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: MS(8),
   },
   thinkingText: {
     color: SubHeadingColor,
-    fontSize: 14,
+    fontSize: MS(14),
     fontFamily: 'Helvetica',
   },
   galleryImage: {
-    width: 180,
-    height: 140,
-    borderRadius: 12,
+    width: S(180),
+    height: VS(140),
+    borderRadius: MS(12),
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
   copyIcon: {
-    width: 18,
-    height: 18,
+    width: S(18),
+    height: VS(18),
     tintColor: HeadingColor,
     resizeMode: 'contain',
   },
   actionButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: VS(6),
     alignSelf: 'flex-start',
   },
   actionButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: VS(4),
+    paddingHorizontal: S(8),
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: S(16),
+    paddingVertical: VS(12),
     backgroundColor: PrimaryColor,
     borderTopWidth: 1,
     borderTopColor: BorderColor,
   },
   input: {
     flex: 1,
-    minHeight: 44,
-    maxHeight: 100,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    minHeight: VS(44),
+    maxHeight: VS(100),
+    paddingHorizontal: S(16),
+    paddingVertical: VS(10),
     backgroundColor: InputBgColor,
-    borderRadius: 24,
+    borderRadius: MS(24),
     color: HeadingColor,
-    fontSize: 14,
+    fontSize: MS(14),
     fontFamily: 'Helvetica',
   },
   sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: MS(44),
+    height: MS(44),
+    borderRadius: MS(22),
     backgroundColor: SecondaryColor,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 10,
+    marginLeft: S(10),
   },
   sendIcon: {
-    fontSize: 20,
+    fontSize: MS(20),
     color: PrimaryColor,
   },
   modalOverlay: {
@@ -840,71 +849,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   previewImage: {
-    borderRadius: 12,
+    borderRadius: MS(12),
   },
   closeButton: {
     position: 'absolute',
-    top: 50,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    top: VS(50),
+    right: S(20),
+    width: S(40),
+    height: VS(40),
+    borderRadius: MS(20),
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeButtonText: {
     color: HeadingColor,
-    fontSize: 20,
+    fontSize: MS(20),
     fontFamily: 'Helvetica-Bold',
   },
   feedbackModalContainer: {
     width: '85%',
     backgroundColor: InputBgColor,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: MS(16),
+    padding: MS(20),
     alignItems: 'center',
     borderWidth: 1,
     borderColor: BorderColor,
   },
   feedbackTitle: {
-    fontSize: 18,
+    fontSize: MS(18),
     fontFamily: 'Helvetica-Bold',
     color: HeadingColor,
-    marginBottom: 20,
+    marginBottom: VS(20),
   },
   ratingContainer: {
     flexDirection: 'row',
-    marginBottom: 20,
-    gap: 12,
+    marginBottom: VS(20),
+    gap: MS(12),
   },
   starIcon: {
-    width: 30,
-    height: 30,
+    width: S(30),
+    height: VS(30),
   },
   feedbackInput: {
     width: '100%',
-    height: 100,
+    height: VS(100),
     backgroundColor: PrimaryColor,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: MS(8),
+    padding: MS(12),
     color: HeadingColor,
     textAlignVertical: 'top',
-    marginBottom: 20,
+    marginBottom: VS(20),
     borderWidth: 1,
     borderColor: BorderColor,
-    fontSize: 14,
+    fontSize: MS(14),
     fontFamily: 'Helvetica',
   },
   submitFeedbackButton: {
     backgroundColor: SecondaryColor,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
+    paddingVertical: VS(12),
+    paddingHorizontal: S(30),
+    borderRadius: MS(25),
   },
   submitFeedbackText: {
     color: PrimaryColor,
     fontFamily: 'Helvetica-Bold',
-    fontSize: 16,
+    fontSize: MS(16),
   },
 });

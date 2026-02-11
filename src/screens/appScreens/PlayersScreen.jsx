@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../../components/BackButton';
+import { S, VS, MS } from '../../utils/Responsive';
 
 const PlayersScreen = () => {
   return (
@@ -27,14 +28,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B0B0B',
   },
   header: {
-    paddingHorizontal: 10,
-    paddingTop: 10,
+    paddingHorizontal: S(10),
+    paddingTop: VS(10),
   },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { color: '#fff', fontSize: 22, fontFamily: 'Helvetica-Bold' },
-  sub: { color: '#ccc', marginTop: 8, fontFamily: 'Helvetica-light' },
+  title: { color: '#fff', fontSize: MS(22), fontFamily: 'Helvetica-Bold' },
+  sub: { color: '#ccc', marginTop: VS(8), fontFamily: 'Helvetica-light' },
 });

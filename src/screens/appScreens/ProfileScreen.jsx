@@ -18,6 +18,7 @@ import {
   SubHeadingColor,
   BorderColor,
 } from '../../utils/Colors';
+import { S, VS, MS } from '../../utils/Responsive';
 
 const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -52,7 +53,7 @@ const ProfileScreen = ({ navigation }) => {
           <Image source={ArrowBackIcon} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
-        <View style={{ width: 24 }} />
+        <View style={{ width: S(24) }} />
       </View>
 
       <ScrollView style={styles.content}>
@@ -104,93 +105,93 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: S(16),
+    paddingVertical: VS(12),
     borderBottomWidth: 1,
     borderBottomColor: BorderColor,
   },
   backIcon: {
-    width: 24,
-    height: 24,
+    width: S(20),
+    height: VS(20),
     tintColor: HeadingColor,
     resizeMode: 'contain',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: MS(18),
     fontFamily: 'Helvetica-Bold',
     color: HeadingColor,
   },
   content: {
     flex: 1,
-    padding: 24,
+    padding: MS(24),
   },
   avatarContainer: {
     alignItems: 'center',
-    marginBottom: 32,
-    paddingTop: 20,
+    marginBottom: VS(32),
+    paddingTop: VS(20),
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: MS(100),
+    height: MS(100),
+    borderRadius: MS(50),
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: VS(16),
   },
   avatarText: {
-    fontSize: 36,
+    fontSize: MS(36),
     fontFamily: 'Helvetica-Bold',
     color: PrimaryColor,
   },
   userName: {
-    fontSize: 22,
+    fontSize: MS(22),
     fontFamily: 'Helvetica-Bold',
     color: HeadingColor,
-    marginBottom: 4,
+    marginBottom: VS(4),
   },
   userEmail: {
-    fontSize: 14,
+    fontSize: MS(14),
     color: SubHeadingColor,
     fontFamily: 'Helvetica-light',
   },
   infoSection: {
-    marginBottom: 40,
+    marginBottom: VS(40),
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: MS(14),
     fontFamily: 'Helvetica-Bold',
     color: SubHeadingColor,
-    marginBottom: 16,
+    marginBottom: VS(16),
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   infoRow: {
-    paddingVertical: 16,
+    paddingVertical: VS(16),
     borderBottomWidth: 1,
     borderBottomColor: BorderColor,
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: MS(12),
     color: SubHeadingColor,
-    marginBottom: 4,
+    marginBottom: VS(4),
     fontFamily: 'Helvetica',
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: MS(16),
     color: HeadingColor,
     fontFamily: 'Helvetica',
   },
   logoutButton: {
     backgroundColor: '#FF3B30',
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: VS(14),
+    borderRadius: MS(10),
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: VS(40),
   },
   logoutButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: MS(16),
     fontFamily: 'Helvetica-Bold',
   },
 });

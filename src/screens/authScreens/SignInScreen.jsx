@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,6 +25,7 @@ import {
   setUserData,
 } from '../../redux/Reducers/userReducer';
 import { store } from '../../redux/store';
+import { S, VS, MS } from '../../utils/Responsive';
 
 const SignInSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -75,98 +77,106 @@ const SignInScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        {/* <BackButton /> */}
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* <BackButton /> */}
 
-        <View style={styles.content}>
-          <Text style={styles.brand}>FINNAN</Text>
-          <Text style={styles.welcome}>Welcome back</Text>
+          <View style={styles.content}>
+            <Text style={styles.brand}>FINNAN</Text>
+            <Text style={styles.welcome}>Welcome back</Text>
 
-          <Formik
-            initialValues={{ email: '', password: '' }}
-            validationSchema={SignInSchema}
-            onSubmit={values => handleLogin(values)}
-          >
-            {({
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              values,
-              errors,
-              touched,
-            }) => (
-              <View style={{ width: '100%' }}>
-                <TextInput
-                  placeholder="Email"
-                  placeholderTextColor="#999"
-                  style={styles.input}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  textContentType="emailAddress"
-                  onChangeText={handleChange('email')}
-                  onBlur={handleBlur('email')}
-                  value={values.email}
-                />
-                {errors.email && (touched.email || values.email.length > 0) && (
-                  <Text style={styles.error}>{errors.email}</Text>
-                )}
-
-                <View>
+            <Formik
+              initialValues={{ email: '', password: '' }}
+              validationSchema={SignInSchema}
+              onSubmit={values => handleLogin(values)}
+            >
+              {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                touched,
+              }) => (
+                <View style={{ width: '100%' }}>
                   <TextInput
-                    placeholder="Password"
+                    placeholder="Email"
                     placeholderTextColor="#999"
-                    style={[styles.input, { paddingRight: 50 }]}
-                    secureTextEntry={!showPassword}
-                    autoComplete="password"
-                    textContentType="password"
-                    onChangeText={handleChange('password')}
-                    onBlur={handleBlur('password')}
-                    value={values.password}
+                    style={styles.input}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    textContentType="emailAddress"
+                    onChangeText={handleChange('email')}
+                    onBlur={handleBlur('email')}
+                    value={values.email}
                   />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
-                  >
-                    <Image
-                      source={showPassword ? ViewIcon : HideIcon}
-                      style={styles.iconImage}
+                  {errors.email &&
+                    (touched.email || values.email.length > 0) && (
+                      <Text style={styles.error}>{errors.email}</Text>
+                    )}
+
+                  <View>
+                    <TextInput
+                      placeholder="Password"
+                      placeholderTextColor="#999"
+                      style={[styles.input, { paddingRight: S(50) }]}
+                      secureTextEntry={!showPassword}
+                      autoComplete="password"
+                      textContentType="password"
+                      onChangeText={handleChange('password')}
+                      onBlur={handleBlur('password')}
+                      value={values.password}
                     />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeIcon}
+                    >
+                      <Image
+                        source={showPassword ? ViewIcon : HideIcon}
+                        style={styles.iconImage}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {errors.password &&
+                    (touched.password || values.password.length > 0) && (
+                      <Text style={styles.error}>{errors.password}</Text>
+                    )}
+
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('ForgotPassword')}
+                  >
+                    <Text style={styles.forgot}>Forgot password?</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleSubmit}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text style={styles.buttonText}>Login</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
-                {errors.password &&
-                  (touched.password || values.password.length > 0) && (
-                    <Text style={styles.error}>{errors.password}</Text>
-                  )}
-
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('ForgotPassword')}
-                >
-                  <Text style={styles.forgot}>Forgot password?</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleSubmit}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color="#000" />
-                  ) : (
-                    <Text style={styles.buttonText}>Login</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            )}
-          </Formik>
-        </View>
-        <View style={styles.row}>
-          <Text style={{ color: '#999', fontFamily: 'Helvetica' }}>
-            Don't have an account?
-          </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('SignUpScreen')}>
-            <Text style={styles.link}> Sign up</Text>
-          </TouchableOpacity>
-        </View>
+              )}
+            </Formik>
+          </View>
+          <View style={styles.row}>
+            <Text style={{ color: '#999', fontFamily: 'Helvetica' }}>
+              Don't have an account?
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SignUpScreen')}
+            >
+              <Text style={styles.link}> Sign up</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
       <Toast />
     </SafeAreaView>
@@ -177,53 +187,60 @@ export default SignInScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0B0B' },
-  header: { padding: 20, alignItems: 'center' },
-  brand: { color: '#fff', fontSize: 26, fontFamily: 'Helvetica-Bold' },
-  content: { padding: 20, alignItems: 'center', flex: 1 },
-  icon: { width: 80, height: 80, tintColor: '#fff', marginVertical: 12 },
+  header: { padding: MS(20), alignItems: 'center' },
+  brand: { color: '#fff', fontSize: MS(26), fontFamily: 'Helvetica-Bold' },
+  content: { padding: MS(20), alignItems: 'center', flex: 1 },
+  icon: {
+    width: S(80),
+    height: VS(80),
+    tintColor: '#fff',
+    marginVertical: VS(12),
+  },
   welcome: {
     color: '#fff',
-    fontSize: 16,
-    marginTop: 20,
-    marginBottom: 20,
+    fontSize: MS(16),
+    marginTop: VS(20),
+    marginBottom: VS(20),
     fontFamily: 'Helvetica',
   },
-  subtitle: { color: '#999', marginBottom: 20, fontFamily: 'Helvetica' },
+  subtitle: { color: '#999', marginBottom: VS(20), fontFamily: 'Helvetica' },
   input: {
     backgroundColor: '#1d1c1cff',
     color: '#fff',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginBottom: 10,
+    paddingHorizontal: S(14),
+    paddingVertical: VS(12),
+    borderRadius: MS(10),
+    marginBottom: VS(10),
     fontFamily: 'Helvetica',
   },
   button: {
     backgroundColor: 'white',
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: VS(14),
+    borderRadius: MS(10),
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: VS(12),
   },
   buttonText: { color: '#000', fontFamily: 'Helvetica-Bold' },
   forgot: {
     color: 'white',
     textAlign: 'right',
-    marginTop: 6,
+    marginTop: VS(6),
     fontFamily: 'Helvetica',
   },
-  row: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
+  row: { flexDirection: 'row', justifyContent: 'center', marginBottom: VS(20) },
   link: { color: 'white', fontFamily: 'Helvetica-Bold' },
-  error: { color: '#ff7675', marginBottom: 8, fontFamily: 'Helvetica' },
+  error: { color: '#ff7675', marginBottom: VS(8), fontFamily: 'Helvetica' },
   eyeIcon: {
     position: 'absolute',
-    right: 14,
-    top: 12,
+    right: S(14),
+    top: VS(12),
+    resizeMode: 'contain',
     zIndex: 1,
   },
   iconImage: {
-    width: 20,
-    height: 20,
+    width: S(20),
+    height: VS(20),
     tintColor: '#999',
+    resizeMode: 'contain',
   },
 });

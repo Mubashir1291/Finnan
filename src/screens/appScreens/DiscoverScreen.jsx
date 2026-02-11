@@ -19,6 +19,7 @@ import { Icon16, Icon18, Icon22 } from '../../utils/IconSizes';
 import { setIsLogin } from '../../redux/Reducers/userReducer';
 import { store } from '../../redux/store';
 import { useSelector } from 'react-redux';
+import { S, VS, MS } from '../../utils/Responsive';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width / 2 - 18;
@@ -162,8 +163,8 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    height: 56,
-    paddingHorizontal: 16,
+    height: VS(56),
+    paddingHorizontal: S(16),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -171,23 +172,23 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: MS(18),
     fontFamily: 'Helvetica-Bold',
   },
 
   headerIcon: {
-    width: 30,
-    height: 30,
+    width: S(30),
+    height: VS(30),
     tintColor: '#fff',
     resizeMode: 'contain',
   },
 
   card: {
     width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    borderRadius: 20,
+    height: VS(CARD_HEIGHT),
+    borderRadius: MS(20),
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: VS(16),
     backgroundColor: '#111',
   },
 
@@ -201,25 +202,25 @@ const styles = StyleSheet.create({
   overlay: {
     flexDirection: 'column',
     width: '90%',
-    height: 100,
-    padding: 10,
+    height: VS(100),
+    padding: MS(10),
     backgroundColor: 'rgba(0,0,0,0.55)',
-    marginBottom: 12,
-    borderRadius: 12,
+    marginBottom: VS(12),
+    borderRadius: MS(12),
   },
 
   question: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: MS(12),
     lineHeight: 20,
-    paddingRight: 40,
+    paddingRight: S(40),
     fontFamily: 'Helvetica-Bold',
   },
 
   arrowButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
+    width: S(30),
+    height: VS(30),
+    borderRadius: MS(8),
     backgroundColor: '#D8FF00', // neon yellow
     justifyContent: 'center',
     alignItems: 'center',

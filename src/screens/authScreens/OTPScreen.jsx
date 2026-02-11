@@ -5,9 +5,13 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { S, VS, MS } from '../../utils/Responsive';
 
 const OTPScreen = ({ navigation, route }) => {
   const { email } = route.params || {};
@@ -71,7 +75,7 @@ const OTPScreen = ({ navigation, route }) => {
     Toast.show({
       type: 'info',
       text1: 'Resent',
-      text2: 'Code resent (mock)',
+      text2: 'Code resent to your email',
       visibilityTime: 2500,
     });
     setSeconds(60);
@@ -81,63 +85,73 @@ const OTPScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.brand}>FINNAN</Text>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.title}>Enter verification code</Text>
-        <Text style={styles.subtitle}>
-          We sent a code to {email || 'your email'}
-        </Text>
-
-        <View style={{ width: '100%' }}>
-          <View style={styles.otpContainer}>
-            {[0, 1, 2, 3].map(i => (
-              <TextInput
-                key={i}
-                ref={el => (refs.current[i] = el)}
-                value={digits[i]}
-                onChangeText={val => onChangeDigit(val, i)}
-                onKeyPress={e => onKeyPress(e, i)}
-                style={styles.otpBox}
-                keyboardType="number-pad"
-                maxLength={1}
-                // placeholder="-"
-                placeholderTextColor="#444"
-                textAlign="center"
-                autoFocus={i === 0}
-              />
-            ))}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.brand}>FINNAN</Text>
           </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <View style={styles.content}>
+            <Text style={styles.title}>Enter verification code</Text>
+            <Text style={styles.subtitle}>
+              We sent a code to {email || 'your email'}
+            </Text>
 
-          <TouchableOpacity
-            style={[styles.button, !isComplete && { opacity: 0.6 }]}
-            onPress={verify}
-            disabled={!isComplete}
-          >
-            <Text style={styles.buttonText}>Verify</Text>
-          </TouchableOpacity>
+            <View style={{ width: '100%' }}>
+              <View style={styles.otpContainer}>
+                {[0, 1, 2, 3].map(i => (
+                  <TextInput
+                    key={i}
+                    ref={el => (refs.current[i] = el)}
+                    value={digits[i]}
+                    onChangeText={val => onChangeDigit(val, i)}
+                    onKeyPress={e => onKeyPress(e, i)}
+                    style={styles.otpBox}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    // placeholder="-"
+                    placeholderTextColor="#444"
+                    textAlign="center"
+                    autoFocus={i === 0}
+                  />
+                ))}
+              </View>
 
-          <View style={{ marginTop: 12, alignItems: 'center' }}>
-            {seconds > 0 ? (
-              <Text style={styles.timerText}>
-                Resend code in 00:{String(seconds).padStart(2, '0')}
-              </Text>
-            ) : (
-              <TouchableOpacity onPress={resend}>
-                <Text
-                  style={{ color: '#D8FF00', fontFamily: 'Helvetica-Bold' }}
-                >
-                  Resend code
-                </Text>
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+
+              <TouchableOpacity
+                style={[styles.button, !isComplete && { opacity: 0.6 }]}
+                onPress={verify}
+                disabled={!isComplete}
+              >
+                <Text style={styles.buttonText}>Verify</Text>
               </TouchableOpacity>
-            )}
+
+              <View style={{ marginTop: VS(12), alignItems: 'center' }}>
+                {seconds > 0 ? (
+                  <Text style={styles.timerText}>
+                    Resend code in 00:{String(seconds).padStart(2, '0')}
+                  </Text>
+                ) : (
+                  <TouchableOpacity onPress={resend}>
+                    <Text
+                      style={{ color: '#D8FF00', fontFamily: 'Helvetica-Bold' }}
+                    >
+                      Resend code
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
           </View>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
       <Toast />
     </SafeAreaView>
   );
@@ -147,50 +161,50 @@ export default OTPScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0B0B' },
-  header: { padding: 20, alignItems: 'center' },
-  brand: { color: '#fff', fontSize: 26, fontFamily: 'Helvetica-Bold' },
-  content: { padding: 20 },
+  header: { padding: MS(20), alignItems: 'center' },
+  brand: { color: '#fff', fontSize: MS(26), fontFamily: 'Helvetica-Bold' },
+  content: { padding: MS(20) },
   title: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: MS(20),
     fontFamily: 'Helvetica-Bold',
-    marginBottom: 6,
+    marginBottom: VS(6),
   },
-  subtitle: { color: '#999', marginBottom: 20, fontFamily: 'Helvetica' },
+  subtitle: { color: '#999', marginBottom: VS(20), fontFamily: 'Helvetica' },
   input: {
     backgroundColor: '#111',
     color: '#fff',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginBottom: 10,
+    paddingHorizontal: S(14),
+    paddingVertical: VS(12),
+    borderRadius: MS(10),
+    marginBottom: VS(10),
     fontFamily: 'Helvetica',
   },
   button: {
     backgroundColor: '#fff',
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: VS(14),
+    borderRadius: MS(10),
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: VS(6),
   },
   buttonText: { color: '#000', fontFamily: 'Helvetica-Bold' },
-  error: { color: '#ff7675', marginBottom: 8, fontFamily: 'Helvetica' },
+  error: { color: '#ff7675', marginBottom: VS(8), fontFamily: 'Helvetica' },
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: VS(12),
   },
   otpBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
+    width: S(56),
+    height: VS(56),
+    borderRadius: MS(10),
     backgroundColor: '#111',
     color: '#fff',
-    fontSize: 22,
+    fontSize: MS(22),
     textAlign: 'center',
     textAlignVertical: 'center',
     padding: 0,
-    borderWidth: 1,
+    borderWidth: MS(1),
     borderColor: '#222',
     fontFamily: 'Helvetica',
   },
