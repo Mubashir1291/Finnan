@@ -40,7 +40,7 @@ const initialMessages = [
   {
     id: '1',
     role: 'bot',
-    text: "Hi! I'm Jose AIA, your football agent. Ready to explore transfers and stats?",
+    text: "Hi! I'm Finnan , your football agent. Ready to explore transfers and stats?",
   },
 ];
 
@@ -526,7 +526,7 @@ export default function AgentScreen({ navigation, route }) {
         ListHeaderComponent={
           <View style={styles.headerSection}>
             <View style={styles.titleRow}>
-              <Text style={styles.mainTitle}>ASK JOSE AIA</Text>
+              <Text style={styles.mainTitle}>ASK Finnan</Text>
               <Image source={StarsIcon} style={styles.titleIcon} />
             </View>
             <Text style={styles.subtitle}>
@@ -549,7 +549,7 @@ export default function AgentScreen({ navigation, route }) {
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
-          placeholder="Ask Anything from Jose"
+          placeholder="Ask Anything from Finnan"
           placeholderTextColor={SubHeadingColor}
           value={input}
           onChangeText={setInput}

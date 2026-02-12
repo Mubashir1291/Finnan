@@ -30,7 +30,7 @@ const DrawerContent = ({ navigation }) => {
       <View style={styles.itemsWrap}>
         <Item
           icon={StarsIcon}
-          label="Agent"
+          label="Finnan"
           onPress={() => navigation.navigate('Home', { screen: 'AgentScreen' })}
         />
 
@@ -57,7 +57,7 @@ const DrawerContent = ({ navigation }) => {
         />
       </View>
 
-      <View style={styles.bottom}>
+      {/* <View style={styles.bottom}>
         <TouchableOpacity
           style={styles.loginBtn}
           onPress={() =>
@@ -66,7 +66,7 @@ const DrawerContent = ({ navigation }) => {
         >
           <Text style={styles.loginText}>Login / Signup</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 };
