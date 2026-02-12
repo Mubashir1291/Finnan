@@ -4,6 +4,7 @@ const initialState = {
   isLogin: false,
   accessToken: null,
   userData: null,
+  aiToken: null,
 };
 
 export const userReducer = createSlice({
@@ -20,15 +21,19 @@ export const userReducer = createSlice({
     setUserData: (state, action) => {
       state.userData = action.payload;
     },
+    setAiToken: (state, action) => {
+      state.aiToken = action.payload;
+    },
 
     logout: state => {
       state.isLogin = false;
       state.accessToken = null;
+      state.aiToken = null;
     },
   },
 });
 
-export const { setIsLogin, setAccessToken, logout, setUserData } =
+export const { setIsLogin, setAccessToken, logout, setUserData, setAiToken } =
   userReducer.actions;
 
 export default userReducer.reducer;

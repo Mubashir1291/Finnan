@@ -5,7 +5,7 @@ import { endPoints } from './endPoints';
 // const BASE_URL = 'http://192.168.18.228:8081'; // change if needed
 // const BASE_URL = 'https://unvaleted-postnephritic-lucien.ngrok-free.dev'; // change if needed
 // const BASE_URL = 'https://api.interaia.com'; // change if needed
-const BASE_URL = 'https://sse-feedalabs.webevis.com';
+const BASE_URL = 'https://interaia.com';
 
 function getAuthToken() {
   const state = store.getState();
@@ -144,11 +144,60 @@ export const Fetch = {
 };
 
 const BASE_AI_URL = 'https://sse-feedalabs.webevis.com';
- 
+
 function getAiToken() {
   const state = store.getState();
-  return state?.user?.accessToken || null;
+  return state?.user?.aiToken || null;
 }
+
+export const userLogin = async (payload: any) => {
+  const aiToken = getAiToken();
+  const headers: any = {
+    'Content-Type': 'application/json',
+  };
+  if (aiToken) headers.Authorization = `Bearer ${aiToken}`;
+
+  const response = await fetch(`${BASE_AI_URL}/user${endPoints.AI_LOGIN}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
+  }
+
+  return response.json();
+};
+
+export const userSession = async (payload: any) => {
+  const aiToken = getAiToken();
+  console.log(aiToken, 'tokennnnnnnnnnnnnnnnn');
+  const headers: any = {
+    'Content-Type': 'application/json',
+  };
+  if (aiToken) headers.Authorization = `Bearer ${aiToken}`;
+  if (aiToken) headers.AI_SESSION = aiToken;
+  const bodyStr =
+    typeof payload === 'string' ? payload : JSON.stringify(payload);
+  console.log('AI session request body:', bodyStr);
+  const response = await fetch(
+    `${BASE_AI_URL}/session${endPoints.AI_SESSION}`,
+    {
+      method: 'POST',
+      headers: { ...headers, Accept: 'application/json' },
+      body: bodyStr,
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
+  }
+
+  return response.json();
+};
 export const AI_CHATTING = async (payload: any) => {
   const aiToken = getAiToken();
   const headers: any = {
@@ -159,13 +208,13 @@ export const AI_CHATTING = async (payload: any) => {
   const bodyStr =
     typeof payload === 'string' ? payload : JSON.stringify(payload);
   console.log('AI chatting request body:', bodyStr);
- 
-  const response = await fetch(`${BASE_AI_URL}${endPoints.CHAT}`, {
+
+  const response = await fetch(`${BASE_AI_URL}${endPoints.AI_CHAT}`, {
     method: 'POST',
     headers: { ...headers, Accept: 'application/json' },
     body: bodyStr,
   });
- 
+
   // Read raw text first and try to parse as JSON. Many AI endpoints stream
   // incremental JSON objects (concatenated JSON chunks or SSE). Try several
   // strategies to assemble a useful value for the caller:
@@ -176,7 +225,7 @@ export const AI_CHATTING = async (payload: any) => {
   // 4) fallback to raw text
   const text = await response.text();
   let data: any = null;
- 
+
   const tryParse = (str: string) => {
     try {
       return JSON.parse(str);
@@ -184,10 +233,10 @@ export const AI_CHATTING = async (payload: any) => {
       return null;
     }
   };
- 
+
   // 1) try single JSON
   data = tryParse(text);
- 
+
   // 2) try concatenated JSON objects -> convert `}{` to `},{` and wrap in []
   if (data === null && text && /}\s*{/.test(text)) {
     const normalized = text.replace(/}\s*{/g, '},{');
@@ -204,7 +253,7 @@ export const AI_CHATTING = async (payload: any) => {
         }
       }
       console.log('=== END STREAMING DEBUG ===');
- 
+
       // Helper to safely convert a value to string
       const stringify = (val: any): string => {
         if (val === null || val === undefined) return '';
@@ -212,31 +261,69 @@ export const AI_CHATTING = async (payload: any) => {
         if (typeof val === 'object') {
           // Check if it's a URL object and convert appropriately
           // Look for common URL patterns
-          const urlKeys = ['image', 'img', 'src', 'url', 'image_url', 'imageUrl', 'thumbnail', 'photo', 'link', 'href'];
+          const urlKeys = [
+            'image',
+            'img',
+            'src',
+            'url',
+            'image_url',
+            'imageUrl',
+            'thumbnail',
+            'photo',
+            'link',
+            'href',
+          ];
           for (const key of urlKeys) {
             if (val[key] && typeof val[key] === 'string') {
               const urlValue = val[key];
               // Make sure it's a valid full URL
-              if (urlValue.startsWith('http://') || urlValue.startsWith('https://')) {
+              if (
+                urlValue.startsWith('http://') ||
+                urlValue.startsWith('https://')
+              ) {
                 // Check if it's an actual image URL (by extension or known image hosts)
                 const isImageUrl = (url: string): boolean => {
-                  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+                  const imageExtensions = [
+                    '.jpg',
+                    '.jpeg',
+                    '.png',
+                    '.gif',
+                    '.webp',
+                    '.bmp',
+                    '.svg',
+                  ];
                   const lowerUrl = url.toLowerCase();
                   // Check file extensions
-                  if (imageExtensions.some(ext => lowerUrl.includes(ext))) return true;
+                  if (imageExtensions.some(ext => lowerUrl.includes(ext)))
+                    return true;
                   // Check known image hosting patterns
-                  if (lowerUrl.includes('/images/') || lowerUrl.includes('/img/')) return true;
-                  if (lowerUrl.includes('ytimg.com') || lowerUrl.includes('espncdn.com')) return true;
+                  if (
+                    lowerUrl.includes('/images/') ||
+                    lowerUrl.includes('/img/')
+                  )
+                    return true;
+                  if (
+                    lowerUrl.includes('ytimg.com') ||
+                    lowerUrl.includes('espncdn.com')
+                  )
+                    return true;
                   return false;
                 };
- 
+
                 if (isImageUrl(urlValue)) {
                   // It's an image - render as img tag with class for horizontal layout
                   console.log('Rendering as image:', urlValue.substring(0, 80));
-                  return `<img src="${urlValue}" alt="${val.alt || val.title || 'Image'}" class="chat-image" />`;
+                  return `<img src="${urlValue}" alt="${
+                    val.alt || val.title || 'Image'
+                  }" class="chat-image" />`;
                 } else {
                   // It's a web page link - render as clickable link
-                  const title = val.title || val.name || val.alt || urlValue.split('/').pop() || 'Link';
+                  const title =
+                    val.title ||
+                    val.name ||
+                    val.alt ||
+                    urlValue.split('/').pop() ||
+                    'Link';
                   console.log('Rendering as link:', urlValue.substring(0, 80));
                   return `<a href="${urlValue}" style="color: #4da6ff; text-decoration: underline;">${title}</a>`;
                 }
@@ -255,7 +342,14 @@ export const AI_CHATTING = async (payload: any) => {
           // Skip empty objects
           if (Object.keys(val).length === 0) return '';
           // Try to extract useful content from object - but skip known non-text fields
-          const skipKeys = ['type', 'role', 'id', 'timestamp', 'created_at', 'updated_at'];
+          const skipKeys = [
+            'type',
+            'role',
+            'id',
+            'timestamp',
+            'created_at',
+            'updated_at',
+          ];
           let result = '';
           for (const key of Object.keys(val)) {
             if (skipKeys.includes(key)) continue;
@@ -266,17 +360,19 @@ export const AI_CHATTING = async (payload: any) => {
         }
         return String(val);
       };
- 
+
       // if items contain `data` fields, join them into a single string
       const allHaveData = data.every(
         (it: any) => it && (it.data !== undefined || it.output !== undefined),
       );
       if (allHaveData) {
-        data = data.map((it: any) => stringify(it.data ?? it.output ?? '')).join('');
+        data = data
+          .map((it: any) => stringify(it.data ?? it.output ?? ''))
+          .join('');
       }
     }
   }
- 
+
   // 3) SSE-style lines: look for `data: { ... }` occurrences
   if (data === null && text && /data:\s*\{/.test(text)) {
     const matches = [
@@ -297,8 +393,13 @@ export const AI_CHATTING = async (payload: any) => {
             // Check if it's an image object and convert to img tag
             if (val.image || val.img || val.src || val.url) {
               const imgSrc = val.image || val.img || val.src || val.url;
-              if (typeof imgSrc === 'string' && (imgSrc.startsWith('http') || imgSrc.startsWith('data:'))) {
-                return `<img src="${imgSrc}" alt="${val.alt || 'Image'}" style="max-width: 100%; border-radius: 8px; margin: 8px 0;" />`;
+              if (
+                typeof imgSrc === 'string' &&
+                (imgSrc.startsWith('http') || imgSrc.startsWith('data:'))
+              ) {
+                return `<img src="${imgSrc}" alt="${
+                  val.alt || 'Image'
+                }" style="max-width: 100%; border-radius: 8px; margin: 8px 0;" />`;
               }
             }
             if (val.text) return stringify(val.text);
@@ -321,7 +422,7 @@ export const AI_CHATTING = async (payload: any) => {
       }
     }
   }
- 
+
   // 4) fallback to raw text
   if (data === null) {
     console.warn(
@@ -330,22 +431,21 @@ export const AI_CHATTING = async (payload: any) => {
     );
     data = text;
   }
- 
+
   if (!response.ok) {
     throw (
       data || { message: 'AI chat request failed', status: response.status }
     );
   }
- 
+
   // Clean up internal tool names from the response
   if (typeof data === 'string') {
     // Remove perplexity_search and similar tool call patterns
     data = data
-      .replace(/perplexity_search[^\s<]*/gi, '')  // Remove perplexity_search followed by any text
-      .replace(/\s{2,}/g, ' ')  // Clean up extra spaces
+      .replace(/perplexity_search[^\s<]*/gi, '') // Remove perplexity_search followed by any text
+      .replace(/\s{2,}/g, ' ') // Clean up extra spaces
       .trim();
   }
- 
+
   return data;
 };
- 

@@ -63,7 +63,6 @@ import { setIsLogin } from '../../redux/Reducers/userReducer';
 const ExploreScreen = () => {
   const navigation = useNavigation();
   const { isLogin, accessToken } = useSelector(state => state.user);
-  console.log(accessToken, 'here is tokennnnnnnnnnnnnnnnnnnnnnn');
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.card}>

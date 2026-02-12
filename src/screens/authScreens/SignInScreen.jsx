@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  Modal,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,11 +22,13 @@ import { LOGIN_ACCOUNT } from '../../services/AuthServices';
 import { useDispatch } from 'react-redux';
 import {
   setAccessToken,
+  setAiToken,
   setIsLogin,
   setUserData,
 } from '../../redux/Reducers/userReducer';
 import { store } from '../../redux/store';
 import { S, VS, MS } from '../../utils/Responsive';
+import { AI_LOGIN } from '../../services/AppServices';
 
 const SignInSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -37,6 +40,7 @@ const SignInSchema = Yup.object().shape({
 const SignInScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showActivationModal, setShowActivationModal] = useState(false);
   const dispatch = useDispatch();
 
   const handleLogin = async values => {
@@ -45,14 +49,21 @@ const SignInScreen = ({ navigation }) => {
       const payload = { email: values.email, password: values.password };
       const response = await LOGIN_ACCOUNT(payload);
       console.log('Login response', response);
-      store.dispatch(setAccessToken(response?.auth?.access_token));
+
+      if (response === 'not_authenticated') {
+        setIsLoading(false);
+        setShowActivationModal(true);
+        return;
+      }
+
+      // store.dispatch(setAccessToken(response?.auth?.access_token));
       store.dispatch(
         setUserData({
           email: values.email,
 
           name:
-            response?.user?.name ||
-            response?.data?.name ||
+            response?.user?.first_name ||
+            response?.data?.first_name ||
             values.email.split('@')[0],
         }),
       );
@@ -62,6 +73,14 @@ const SignInScreen = ({ navigation }) => {
     } catch (error) {
       console.log(error);
       setIsLoading(false);
+      if (
+        error?.message?.includes('not authenticated') ||
+        error?.code === 'not_authenticated'
+      ) {
+        setShowActivationModal(true);
+        return;
+      }
+
       Toast.show({
         type: 'error',
         text1: 'Login failed',
@@ -69,6 +88,18 @@ const SignInScreen = ({ navigation }) => {
         visibilityTime: 2500,
       });
     }
+  };
+
+  const HandleAILogin = async values => {
+    const obj = {
+      email: 'waleed@webevis.com',
+      password: '12345678',
+    };
+    try {
+      const response = await AI_LOGIN(obj);
+      console.log(response, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+      store.dispatch(setAiToken(response?.auth?.access_token));
+    } catch (error) {}
   };
 
   return (
@@ -90,7 +121,10 @@ const SignInScreen = ({ navigation }) => {
             <Formik
               initialValues={{ email: '', password: '' }}
               validationSchema={SignInSchema}
-              onSubmit={values => handleLogin(values)}
+              onSubmit={values => {
+                handleLogin(values);
+                HandleAILogin(values);
+              }}
             >
               {({
                 handleChange,
@@ -178,6 +212,29 @@ const SignInScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={showActivationModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowActivationModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Activation Required</Text>
+            <Text style={styles.modalMessage}>
+              Check your email inbox or spam for account activation.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowActivationModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Toast />
     </SafeAreaView>
   );
@@ -242,5 +299,48 @@ const styles = StyleSheet.create({
     height: VS(20),
     tintColor: '#999',
     resizeMode: 'contain',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: MS(20),
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#1d1c1cff',
+    borderRadius: MS(14),
+    padding: MS(20),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: MS(18),
+    fontFamily: 'Helvetica-Bold',
+    marginBottom: VS(12),
+  },
+  modalMessage: {
+    color: '#ccc',
+    fontSize: MS(14),
+    fontFamily: 'Helvetica',
+    textAlign: 'center',
+    marginBottom: VS(20),
+    lineHeight: VS(20),
+  },
+  modalButton: {
+    backgroundColor: '#fff',
+    paddingVertical: VS(10),
+    paddingHorizontal: S(30),
+    borderRadius: MS(8),
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#000',
+    fontFamily: 'Helvetica-Bold',
+    fontSize: MS(14),
   },
 });

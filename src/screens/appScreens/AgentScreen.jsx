@@ -17,6 +17,7 @@ import {
   Pressable,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import RenderHTML from 'react-native-render-html';
 import {
   PrimaryColor,
@@ -58,25 +59,29 @@ export default function AgentScreen({ navigation, route }) {
     useState(null);
   const [rating, setRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
-  console.log(prompt, 'this is prompt');
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    CreateSession();
+  }, []);
 
   useEffect(() => {
     const initChat = async () => {
       let currentSession = session;
-      // If no session exists, create one
       if (!currentSession) {
         currentSession = await CreateSession();
       }
-
-      // If we have a prompt and a valid session, send the message
       if (prompt && currentSession) {
-        // Small delay to ensure UI is ready
         setTimeout(() => {
           handleSend(prompt, currentSession);
         }, 500);
       }
     };
-
     initChat();
   }, [prompt]);
 
@@ -86,21 +91,15 @@ export default function AgentScreen({ navigation, route }) {
       agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
       mode: 'agent',
     };
-
     try {
-      const response = await SESSION_AI(obj);
-      console.log(response, 'this is session response');
+      const response = await userSession(obj);
       setSession(response?.session_id);
       return response?.session_id;
     } catch (error) {
-      console.log(error, 'this is session error');
+      console.log(error, 'Session error');
       return null;
     }
   };
-
-  // useEffect(() => {
-  //   CreateSession();
-  // }, []);
 
   useEffect(() => {
     if (listRef.current && messages.length) {
@@ -119,7 +118,6 @@ export default function AgentScreen({ navigation, route }) {
     };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
-    if (!text) setInput(''); // Only clear input if we used the input state
 
     const thinkingId = `thinking-${Date.now()}`;
     const thinkingMsg = {
@@ -132,13 +130,8 @@ export default function AgentScreen({ navigation, route }) {
 
     (async () => {
       let activeSession = manualSessionId || session;
-
+      if (!activeSession) activeSession = await CreateSession();
       if (!activeSession) {
-        activeSession = await CreateSession();
-      }
-
-      if (!activeSession) {
-        console.warn('No session — cannot send to AI.');
         setMessages(prev =>
           prev.map(m =>
             m.id === thinkingId
@@ -204,9 +197,8 @@ export default function AgentScreen({ navigation, route }) {
             let result = '';
             for (const key of keys) {
               const extracted = extractText(value[key]);
-              if (extracted && extracted !== '[object Object]') {
+              if (extracted && extracted !== '[object Object]')
                 result += extracted;
-              }
             }
             return result || '';
           }
@@ -221,14 +213,44 @@ export default function AgentScreen({ navigation, route }) {
             res?.data?.message ||
             res,
         );
-
         botText = botText.replace(/\[object Object\]/g, '').trim();
 
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === thinkingId ? { ...m, text: botText, thinking: false } : m,
-          ),
-        );
+        // ✅ Smooth fast typing with requestAnimationFrame
+        let currentText = '';
+        let i = 0;
+        const speed = 18; // characters per frame
+
+        const type = () => {
+          if (!isMounted.current) return;
+          let count = 0;
+          while (i < botText.length && count < speed) {
+            if (botText[i] === '<') {
+              let tag = '';
+              while (i < botText.length && botText[i] !== '>') {
+                tag += botText[i];
+                i++;
+              }
+              if (i < botText.length) (tag += '>'), i++;
+              currentText += tag;
+            } else {
+              currentText += botText[i];
+              i++;
+            }
+            count++;
+          }
+
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === thinkingId
+                ? { ...m, text: currentText, thinking: false }
+                : m,
+            ),
+          );
+          listRef.current?.scrollToEnd({ animated: false });
+          if (i < botText.length) requestAnimationFrame(type);
+        };
+
+        requestAnimationFrame(type);
       } catch (err) {
         console.log('AI chat error:', err);
         setMessages(prev =>
@@ -249,12 +271,9 @@ export default function AgentScreen({ navigation, route }) {
   const handleFeedbackSubmit = () => {
     console.log('Feedback submitted:', {
       messageId: selectedMessageForFeedback?.id,
-      rating: rating,
+      rating,
       feedback: feedbackText,
     });
-    // TODO: Send feedback to your API
-
-    // Reset and close
     setFeedbackModalVisible(false);
     setRating(0);
     setFeedbackText('');
@@ -495,151 +514,153 @@ export default function AgentScreen({ navigation, route }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => navigation?.openDrawer?.() || navigation?.goBack?.()}
-        >
-          <Image source={MenuIcon} style={styles.headerIcon} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }} />
-        <TouchableOpacity activeOpacity={0.7}>
-          {/* <View style={styles.chatIconContainer}>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => navigation?.openDrawer?.() || navigation?.goBack?.()}
+          >
+            <Image source={MenuIcon} style={styles.headerIcon} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity activeOpacity={0.7}>
+            {/* <View style={styles.chatIconContainer}>
             <Image source={StarsIcon} style={styles.chatIconText} />
           </View> */}
-        </TouchableOpacity>
-      </View>
+          </TouchableOpacity>
+        </View>
 
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <View style={styles.headerSection}>
-            <View style={styles.titleRow}>
-              <Text style={styles.mainTitle}>ASK Finnan</Text>
-              <Image source={StarsIcon} style={styles.titleIcon} />
-            </View>
-            <Text style={styles.subtitle}>
-              The Global Football Master Agent. Powered by AI.{'\n'}Informed by
-              Data.
-            </Text>
-            <TouchableOpacity
-              style={styles.newConversationButton}
-              onPress={handleStartNewConversation}
-            >
-              <Text style={styles.newConversationText}>
-                Start a new conversation
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={item => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={styles.headerSection}>
+              <View style={styles.titleRow}>
+                <Text style={styles.mainTitle}>ASK Finnan</Text>
+                <Image source={StarsIcon} style={styles.titleIcon} />
+              </View>
+              <Text style={styles.subtitle}>
+                The Global Football Master Agent. Powered by AI.{'\n'}Informed
+                by Data.
               </Text>
-            </TouchableOpacity>
-          </View>
-        }
-      />
-
-      {/* Input Row */}
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="Ask Anything from Finnan"
-          placeholderTextColor={SubHeadingColor}
-          value={input}
-          onChangeText={setInput}
-          returnKeyType="send"
-          onSubmitEditing={handleSend}
-          multiline
+              <TouchableOpacity
+                style={styles.newConversationButton}
+                onPress={handleStartNewConversation}
+              >
+                <Text style={styles.newConversationText}>
+                  Start a new conversation
+                </Text>
+              </TouchableOpacity>
+            </View>
+          }
         />
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={handleSend}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color={PrimaryColor} size="small" />
-          ) : (
-            <Text style={styles.sendIcon}>➤</Text>
-          )}
-        </TouchableOpacity>
-      </View>
 
-      {/* Image Preview Modal */}
-      <Modal
-        visible={!!previewImage}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setPreviewImage(null)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setPreviewImage(null)}
-        >
-          {previewImage && (
-            <Image
-              source={{ uri: previewImage }}
-              style={[
-                styles.previewImage,
-                { width: width - S(40), height: height * 0.7 },
-              ]}
-              resizeMode="contain"
-            />
-          )}
+        {/* Input Row */}
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="Ask Anything from Finnan"
+            placeholderTextColor={SubHeadingColor}
+            value={input}
+            onChangeText={setInput}
+            returnKeyType="send"
+            onSubmitEditing={handleSend}
+            multiline
+          />
           <TouchableOpacity
-            style={styles.closeButton}
+            style={styles.sendButton}
+            onPress={handleSend}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={PrimaryColor} size="small" />
+            ) : (
+              <Text style={styles.sendIcon}>➤</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Image Preview Modal */}
+        <Modal
+          visible={!!previewImage}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setPreviewImage(null)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
             onPress={() => setPreviewImage(null)}
           >
-            <Text style={styles.closeButtonText}>✕</Text>
-          </TouchableOpacity>
-        </Pressable>
-      </Modal>
-
-      {/* Feedback Modal */}
-      <Modal
-        visible={feedbackModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setFeedbackModalVisible(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setFeedbackModalVisible(false)}
-        >
-          <Pressable style={styles.feedbackModalContainer}>
-            <Text style={styles.feedbackTitle}>Rate this response</Text>
-            <View style={styles.ratingContainer}>
-              <Rating
-                type="star"
-                ratingCount={5}
-                imageSize={45}
-                tintColor={InputBgColor}
-                onFinishRating={setRating}
-                startingValue={0}
+            {previewImage && (
+              <Image
+                source={{ uri: previewImage }}
+                style={[
+                  styles.previewImage,
+                  { width: width - S(40), height: height * 0.7 },
+                ]}
+                resizeMode="contain"
               />
-            </View>
-            <TextInput
-              style={styles.feedbackInput}
-              placeholder="Tell us more..."
-              placeholderTextColor={SubHeadingColor}
-              value={feedbackText}
-              onChangeText={setFeedbackText}
-            />
+            )}
             <TouchableOpacity
-              style={styles.submitFeedbackButton}
-              onPress={handleFeedbackSubmit}
+              style={styles.closeButton}
+              onPress={() => setPreviewImage(null)}
             >
-              <Text style={styles.submitFeedbackText}>Submit Feedback</Text>
+              <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </Pressable>
-        </Pressable>
-      </Modal>
-    </KeyboardAvoidingView>
+        </Modal>
+
+        {/* Feedback Modal */}
+        <Modal
+          visible={feedbackModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setFeedbackModalVisible(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setFeedbackModalVisible(false)}
+          >
+            <Pressable style={styles.feedbackModalContainer}>
+              <Text style={styles.feedbackTitle}>Rate this response</Text>
+              <View style={styles.ratingContainer}>
+                <Rating
+                  type="star"
+                  ratingCount={5}
+                  imageSize={45}
+                  tintColor={InputBgColor}
+                  onFinishRating={setRating}
+                  startingValue={0}
+                />
+              </View>
+              <TextInput
+                style={styles.feedbackInput}
+                placeholder="Tell us more..."
+                placeholderTextColor={SubHeadingColor}
+                value={feedbackText}
+                onChangeText={setFeedbackText}
+              />
+              <TouchableOpacity
+                style={styles.submitFeedbackButton}
+                onPress={handleFeedbackSubmit}
+              >
+                <Text style={styles.submitFeedbackText}>Submit Feedback</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

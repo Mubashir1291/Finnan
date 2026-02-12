@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -24,9 +26,11 @@ import {
 } from '../../assets/Index';
 import BackButton from '../../components/BackButton';
 import { S, VS, MS } from '../../utils/Responsive';
+import { REGISTER_ACCOUNT } from '../../services/AuthServices';
 
 const SignUpSchema = Yup.object().shape({
-  fullName: Yup.string().required('Full name is required'),
+  first_name: Yup.string().required('First name is required'),
+  last_name: Yup.string().required('Last name is required'),
   email: Yup.string().email('Invalid email').required('Email is required'),
   password: Yup.string()
     .matches(
@@ -43,6 +47,8 @@ const SignUpSchema = Yup.object().shape({
 const SignUpScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,24 +69,56 @@ const SignUpScreen = ({ navigation }) => {
 
             <Formik
               initialValues={{
-                fullName: '',
+                first_name: '',
+                last_name: '',
                 email: '',
                 password: '',
                 confirmPassword: '',
               }}
               validationSchema={SignUpSchema}
-              onSubmit={values => {
-                // TODO: real sign up
-                console.log('Sign up:', values);
-                Toast.show({
-                  type: 'success',
-                  text1: 'Signed up',
-                  text2: `Welcome ${values.fullName}`,
-                  visibilityTime: 2500,
-                });
-                setTimeout(() => {
-                  navigation.navigate('SignInScreen');
-                }, 2000);
+              onSubmit={async values => {
+                setIsLoading(true);
+                try {
+                  const formData = new FormData();
+                  formData.append('first_name', values.first_name);
+                  formData.append('last_name', values.last_name);
+                  formData.append('email', values.email);
+                  formData.append('password', values.password);
+                  formData.append('confirm_password', values.confirmPassword);
+                  formData.append('is_submit', 1);
+                  const response = await REGISTER_ACCOUNT(formData);
+                  console.log(response, 'this is response for signup');
+
+                  if (
+                    response?.message
+                      ?.toLowerCase()
+                      ?.includes('already exist') ||
+                    response?.data?.message
+                      ?.toLowerCase()
+                      ?.includes('already exist') ||
+                    (typeof response === 'string' &&
+                      response?.toLowerCase()?.includes('already exist'))
+                  ) {
+                    Toast.show({
+                      type: 'error',
+                      text1: 'Registration Failed',
+                      text2: 'User already exists',
+                      visibilityTime: 2500,
+                    });
+                  } else {
+                    setShowSuccessModal(true);
+                  }
+                } catch (error) {
+                  console.log(error);
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Registration Failed',
+                    text2: error?.message || 'Something went wrong',
+                    visibilityTime: 2500,
+                  });
+                } finally {
+                  setIsLoading(false);
+                }
               }}
             >
               {({
@@ -93,18 +131,29 @@ const SignUpScreen = ({ navigation }) => {
               }) => (
                 <View style={{ width: '100%' }}>
                   <TextInput
-                    placeholder="Full name"
+                    placeholder="First Name"
                     placeholderTextColor="#999"
                     style={styles.input}
-                    autoComplete="name"
-                    textContentType="name"
-                    onChangeText={handleChange('fullName')}
-                    onBlur={handleBlur('fullName')}
-                    value={values.fullName}
+                    onChangeText={handleChange('first_name')}
+                    onBlur={handleBlur('first_name')}
+                    value={values.first_name}
                   />
-                  {errors.fullName &&
-                    (touched.fullName || values.fullName.length > 0) && (
-                      <Text style={styles.error}>{errors.fullName}</Text>
+                  {errors.first_name &&
+                    (touched.first_name || values.first_name.length > 0) && (
+                      <Text style={styles.error}>{errors.first_name}</Text>
+                    )}
+
+                  <TextInput
+                    placeholder="Last Name"
+                    placeholderTextColor="#999"
+                    style={styles.input}
+                    onChangeText={handleChange('last_name')}
+                    onBlur={handleBlur('last_name')}
+                    value={values.last_name}
+                  />
+                  {errors.last_name &&
+                    (touched.last_name || values.last_name.length > 0) && (
+                      <Text style={styles.error}>{errors.last_name}</Text>
                     )}
 
                   <TextInput
@@ -184,8 +233,13 @@ const SignUpScreen = ({ navigation }) => {
                   <TouchableOpacity
                     style={styles.button}
                     onPress={handleSubmit}
+                    disabled={isLoading}
                   >
-                    <Text style={styles.buttonText}>Sign up</Text>
+                    {isLoading ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text style={styles.buttonText}>Sign up</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}
@@ -203,6 +257,32 @@ const SignUpScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Account Created Successfully</Text>
+            <Text style={styles.modalMessage}>
+              Check your email inbox or spam for account verification.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                setShowSuccessModal(false);
+                navigation.navigate('SignInScreen');
+              }}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Toast />
     </SafeAreaView>
   );
@@ -259,5 +339,49 @@ const styles = StyleSheet.create({
     height: VS(20),
     tintColor: '#999',
     resizeMode: 'contain',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: MS(20),
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#1d1c1cff',
+    borderRadius: MS(14),
+    padding: MS(20),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: MS(18),
+    fontFamily: 'Helvetica-Bold',
+    marginBottom: VS(12),
+    textAlign: 'center',
+  },
+  modalMessage: {
+    color: '#ccc',
+    fontSize: MS(14),
+    fontFamily: 'Helvetica',
+    textAlign: 'center',
+    marginBottom: VS(20),
+    lineHeight: VS(20),
+  },
+  modalButton: {
+    backgroundColor: '#fff',
+    paddingVertical: VS(10),
+    paddingHorizontal: S(30),
+    borderRadius: MS(8),
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#000',
+    fontFamily: 'Helvetica-Bold',
+    fontSize: MS(14),
   },
 });

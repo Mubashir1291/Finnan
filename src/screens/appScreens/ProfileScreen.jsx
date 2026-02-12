@@ -62,7 +62,9 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{getInitials()}</Text>
           </View>
+          {console.log(userData)}
           <Text style={styles.userName}>{userData?.name || 'User'}</Text>
+
           <Text style={styles.userEmail}>{userData?.email || ''}</Text>
         </View>
 
