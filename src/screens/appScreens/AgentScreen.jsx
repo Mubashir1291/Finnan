@@ -536,154 +536,156 @@ export default function AgentScreen({ navigation, route }) {
   }, [rating, feedbackText]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => navigation.goBack()}
-        >
-          <Image source={BackArrowIcon} style={styles.iconSmall} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>FINNAN</Text>
-        <TouchableOpacity style={{ width: '5%' }} activeOpacity={0.7}>
-          {/* Placeholder for right side */}
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={5}
-        windowSize={7}
-        ListHeaderComponent={
-          <>
-            <View style={styles.headerSection}>
-              <View style={styles.titleRow}>
-                <Text style={styles.mainTitle}>ASK Finnan</Text>
-                <Image source={StarsIcon} style={styles.titleIcon} />
-              </View>
-              <Text style={styles.subtitle}>
-                The Global Football Master Agent. Powered by AI.{'\n'}Informed
-                by Data.
-              </Text>
-              <TouchableOpacity
-                style={styles.newConversationButton}
-                onPress={handleStartNewConversation}
-              >
-                <Text style={styles.newConversationText}>
-                  Start a new conversation
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        }
-      />
-
-      {/* Input Row */}
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="Ask Anything from Finnan..."
-          placeholderTextColor={SubHeadingColor}
-          value={input}
-          onChangeText={setInput}
-          returnKeyType="send"
-          onSubmitEditing={handleSend}
-          multiline
-        />
-        <TouchableOpacity
-          style={{ ...styles.sendButton, opacity: isLoading ? 0.7 : 1 }}
-          onPress={handleSend}
-          disabled={isLoading}
-        >
-          <Text style={styles.sendIcon}>➤</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Image Preview Modal */}
-      <Modal
-        visible={!!previewImage}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setPreviewImage(null)}
+    <View style={{ flex: 1, backgroundColor: PrimaryColor }}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setPreviewImage(null)}
-        >
-          {previewImage && (
-            <Image
-              source={{ uri: previewImage }}
-              style={{
-                width: width - 40,
-                height: height * 0.7,
-                borderRadius: 12,
-              }}
-              resizeMode="contain"
-            />
-          )}
+        {/* Header */}
+        <View style={styles.header}>
           <TouchableOpacity
-            style={styles.closeButton}
+            activeOpacity={0.7}
+            onPress={() => navigation.goBack()}
+          >
+            <Image source={BackArrowIcon} style={styles.iconSmall} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>FINNAN</Text>
+          <TouchableOpacity style={{ width: '5%' }} activeOpacity={0.7}>
+            {/* Placeholder for right side */}
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={5}
+          windowSize={7}
+          ListHeaderComponent={
+            <>
+              <View style={styles.headerSection}>
+                <View style={styles.titleRow}>
+                  <Text style={styles.mainTitle}>ASK Finnan</Text>
+                  <Image source={StarsIcon} style={styles.titleIcon} />
+                </View>
+                <Text style={styles.subtitle}>
+                  The Global Football Master Agent. Powered by AI.{'\n'}Informed
+                  by Data.
+                </Text>
+                <TouchableOpacity
+                  style={styles.newConversationButton}
+                  onPress={handleStartNewConversation}
+                >
+                  <Text style={styles.newConversationText}>
+                    Start a new conversation
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          }
+        />
+
+        {/* Input Row */}
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="Ask Anything from Finnan..."
+            placeholderTextColor={SubHeadingColor}
+            value={input}
+            onChangeText={setInput}
+            returnKeyType="send"
+            onSubmitEditing={handleSend}
+            multiline
+          />
+          <TouchableOpacity
+            style={{ ...styles.sendButton, opacity: isLoading ? 0.7 : 1 }}
+            onPress={handleSend}
+            disabled={isLoading}
+          >
+            <Text style={styles.sendIcon}>➤</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Image Preview Modal */}
+        <Modal
+          visible={!!previewImage}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setPreviewImage(null)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
             onPress={() => setPreviewImage(null)}
           >
-            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
-              ✕
-            </Text>
-          </TouchableOpacity>
-        </Pressable>
-      </Modal>
-
-      <Modal
-        visible={feedbackModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setFeedbackModalVisible(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setFeedbackModalVisible(false)}
-        >
-          <Pressable style={styles.feedbackModalContainer}>
-            <Text style={styles.feedbackTitle}>Rate this response</Text>
-            <View style={styles.ratingContainer}>
-              <Rating
-                type="star"
-                ratingCount={5}
-                imageSize={45}
-                tintColor={InputBgColor}
-                onFinishRating={setRating}
-                startingValue={0}
+            {previewImage && (
+              <Image
+                source={{ uri: previewImage }}
+                style={{
+                  width: width - 40,
+                  height: height * 0.7,
+                  borderRadius: 12,
+                }}
+                resizeMode="contain"
               />
-            </View>
-            <TextInput
-              style={styles.feedbackInput}
-              placeholder="Tell us more..."
-              placeholderTextColor={SubHeadingColor}
-              value={feedbackText}
-              onChangeText={setFeedbackText}
-            />
+            )}
             <TouchableOpacity
-              style={styles.submitFeedbackButton}
-              onPress={handleFeedbackSubmit}
+              style={styles.closeButton}
+              onPress={() => setPreviewImage(null)}
             >
-              <Text style={styles.submitFeedbackText}>Submit Feedback</Text>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
+                ✕
+              </Text>
             </TouchableOpacity>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
 
-      <Toast />
-    </KeyboardAvoidingView>
+        <Modal
+          visible={feedbackModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setFeedbackModalVisible(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setFeedbackModalVisible(false)}
+          >
+            <Pressable style={styles.feedbackModalContainer}>
+              <Text style={styles.feedbackTitle}>Rate this response</Text>
+              <View style={styles.ratingContainer}>
+                <Rating
+                  type="star"
+                  ratingCount={5}
+                  imageSize={45}
+                  tintColor={InputBgColor}
+                  onFinishRating={setRating}
+                  startingValue={0}
+                />
+              </View>
+              <TextInput
+                style={styles.feedbackInput}
+                placeholder="Tell us more..."
+                placeholderTextColor={SubHeadingColor}
+                value={feedbackText}
+                onChangeText={setFeedbackText}
+              />
+              <TouchableOpacity
+                style={styles.submitFeedbackButton}
+                onPress={handleFeedbackSubmit}
+              >
+                <Text style={styles.submitFeedbackText}>Submit Feedback</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+
+        <Toast />
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 

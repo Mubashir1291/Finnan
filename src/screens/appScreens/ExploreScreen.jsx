@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,50 +10,13 @@ import {
   ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
 import Icon10 from '../../utils/IconSizes';
 import { ExploreIcon, MenuIcon, UserIcon } from '../../assets/Index';
 import { S, VS, MS } from '../../utils/Responsive';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width / 2 - 24;
-const DATA = [
-  {
-    id: '1',
-    title: 'HAMZA IGAMANE BEST BITS 24/25',
-    tag: 'Highlight',
-    duration: '0:35',
-    author: 'Hamza Igamane',
-    image:
-      'https://i.pinimg.com/736x/79/2d/e5/792de5a6528fe498b4545da58ae8c5f1.jpg',
-  },
-  {
-    id: '2',
-    title: 'Rodrigo Mora hits the FILTHY equalizer',
-    tag: 'Goal',
-    duration: '0:32',
-    author: 'Rodrigo Mora',
-    image:
-      'https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-2256403885-20260129110315929.jpg?c=16x9&q=h_438,w_780,c_fill',
-  },
-  {
-    id: '3',
-    title: 'ETHAN NWANERI vs MAN CITY',
-    tag: 'Goal',
-    duration: '0:19',
-    author: 'Ethan Nwaneri',
-    image:
-      'https://rukminim2.flixcart.com/image/480/480/kvr01ow0/wall-decoration/e/y/w/football-form-cristiano-ronaldo-player-wallpaper-poster-1-original-imag8kvtgzmmqrge.jpeg?q=90',
-  },
-  {
-    id: '4',
-    title: "Harvey Elliott's first Aston Villa goal",
-    tag: 'Goal',
-    duration: '0:37',
-    author: 'Harvey Elliott',
-    image:
-      'https://static.toiimg.com/thumb/msid-123705146,imgsize-121032,width-400,resizemode-4/hkg-1-0-ind-2.jpg',
-  },
-];
 
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -63,28 +26,48 @@ import { setIsLogin } from '../../redux/Reducers/userReducer';
 const ExploreScreen = () => {
   const navigation = useNavigation();
   const { isLogin, accessToken } = useSelector(state => state.user);
+  const [feedData, setFeedData] = useState([]);
+
+  useEffect(() => {
+    getAppFeed();
+  }, []);
+
+  const getAppFeed = async () => {
+    try {
+      const response = await axios.get(
+        'https://finnanftb.com/wp-json/getappfeed/v1/get-app-feed',
+      );
+      console.log(response.data, 'Explore API Response');
+      setFeedData(response.data);
+    } catch (error) {
+      console.log('Error fetching explore feed:', error);
+    }
+  };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card}>
-      <ImageBackground source={{ uri: item.image }} style={styles.image}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('VideoPlayerScreen', { item })}
+    >
+      <ImageBackground source={{ uri: item?.image }} style={styles.image}>
         {/* Tag */}
-        <View style={styles.tag}>
-          <Text style={styles.tagText}>{item.tag}</Text>
-        </View>
+        {/* <View style={styles.tag}>
+          <Text style={styles.tagText}>{item?.vendor_brand_logo}</Text>
+        </View> */}
 
         {/* Duration */}
-        <View style={styles.duration}>
-          <Text style={styles.durationText}>{item.duration}</Text>
-        </View>
+        {/* <View style={styles.duration}>
+          <Text style={styles.durationText}>{item?.duration}</Text>
+        </View> */}
 
         {/* Text */}
         <View style={styles.textContainer}>
           <Text numberOfLines={2} style={styles.title}>
-            {item.title}
+            {item?.title}
           </Text>
-          <View style={styles.authorBadge}>
-            <Text style={styles.authorText}>{item.author}</Text>
-          </View>
+          {/* <View style={styles.authorBadge}>
+            <Text style={styles.authorText}>{item?.author}</Text>
+          </View> */}
         </View>
       </ImageBackground>
     </TouchableOpacity>
@@ -127,9 +110,9 @@ const ExploreScreen = () => {
       </View>
 
       <FlatList
-        data={DATA}
+        data={feedData}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={(item, index) => item?.id || index.toString()}
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
         contentContainerStyle={{ padding: MS(12) }}

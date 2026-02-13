@@ -2,6 +2,8 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DrawerNavigator from './DrawerNavigator';
 import ProfileScreen from '../screens/appScreens/ProfileScreen';
+import VideoPlayerScreen from '../screens/appScreens/VideoPlayerScreen';
+
 const Stack = createNativeStackNavigator();
 
 const AppStack = () => {
@@ -11,6 +13,7 @@ const AppStack = () => {
     >
       <Stack.Screen name="AppDrawer" component={DrawerNavigator} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="VideoPlayerScreen" component={VideoPlayerScreen} />
     </Stack.Navigator>
   );
 };
