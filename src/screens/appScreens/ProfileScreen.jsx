@@ -31,8 +31,8 @@ const ProfileScreen = ({ navigation }) => {
 
   // Get initials for avatar
   const getInitials = () => {
-    if (userData?.name) {
-      return userData.name
+    if (userData?.data?.display_name) {
+      return userData?.data?.display_name
         .split(' ')
         .map(n => n[0])
         .join('')
@@ -62,10 +62,14 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{getInitials()}</Text>
           </View>
-          {console.log(userData)}
-          <Text style={styles.userName}>{userData?.name || 'User'}</Text>
 
-          <Text style={styles.userEmail}>{userData?.email || ''}</Text>
+          <Text style={styles.userName}>
+            {userData?.data?.display_name || 'User'}
+          </Text>
+
+          <Text style={styles.userEmail}>
+            {userData?.data?.user_email || ''}
+          </Text>
         </View>
 
         {/* User Info Section */}

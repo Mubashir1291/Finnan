@@ -22,8 +22,12 @@ export const UPDATE_PASSWORD = (payload: any) => {
   return Fetch.post(endPoints.UPDATE_PASSWORD, payload);
 };
 
-export const FORGOT_PASSWORD = (email: string) => {
-  return Fetch.get(`${endPoints.FORGOT_PASSWORD}?email=${email}`);
+export const FORGOT_PASSWORD = (email: any) => {
+  console.log(email, 'hhhhhhhhhhhhhhhhhhhhhhh');
+  const response = Fetch.get(
+    `/wp-json/userforgotpassword/v1${endPoints.FORGOTPASSWORD}?email=${email?.email}`,
+  );
+  return response;
 };
 
 export const EDIT_PROFILE = (payload: any) => {

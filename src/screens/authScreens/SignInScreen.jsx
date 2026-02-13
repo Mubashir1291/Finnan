@@ -41,7 +41,6 @@ const SignInScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showActivationModal, setShowActivationModal] = useState(false);
-  const dispatch = useDispatch();
 
   const handleLogin = async values => {
     setIsLoading(true);
@@ -50,28 +49,22 @@ const SignInScreen = ({ navigation }) => {
       const response = await LOGIN_ACCOUNT(payload);
       console.log('Login response', response);
 
-      if (response === 'not_authenticated') {
+      if (
+        response === 'not authenticated' ||
+        response === 'not_authenticated'
+      ) {
         setIsLoading(false);
         setShowActivationModal(true);
-        return;
+      } else {
+        store.dispatch(setUserData(response));
+        store.dispatch(setIsLogin(true));
+        setIsLoading(false);
       }
 
       // store.dispatch(setAccessToken(response?.auth?.access_token));
-      store.dispatch(
-        setUserData({
-          email: values.email,
 
-          name:
-            response?.user?.first_name ||
-            response?.data?.first_name ||
-            values.email.split('@')[0],
-        }),
-      );
-      store.dispatch(setIsLogin(true));
-      setIsLoading(false);
       // No navigation needed - the ProfileOrSignIn wrapper will auto-switch to Profile
     } catch (error) {
-      console.log(error);
       setIsLoading(false);
       if (
         error?.message?.includes('not authenticated') ||
@@ -97,7 +90,7 @@ const SignInScreen = ({ navigation }) => {
     };
     try {
       const response = await AI_LOGIN(obj);
-      console.log(response, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+      // console.log(response, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
       store.dispatch(setAiToken(response?.auth?.access_token));
     } catch (error) {}
   };

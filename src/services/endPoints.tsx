@@ -6,6 +6,7 @@ const endPoints = {
   EDIT_PROFILE: '/update-user-profile-info',
   UPDATE_AVATAR: '/upoload-profile-avatar',
   GET_AVATAR: '/get-profile-avatar',
+  FORGOTPASSWORD: '/user-forgot-password',
   SESSION: '/create',
   CHAT: '/chat',
   AI_LOGIN: '/login',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,60 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { S, VS, MS } from '../../utils/Responsive';
+import { FORGOT_PASSWORD } from '../../services/AuthServices';
 
 const ForgotSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
 });
 
 const ForgotPasswordScreen = ({ navigation }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [email, setEmail] = useState('');
+
+  const handleForgotPassword = async values => {
+    setIsLoading(true);
+    setEmail(values.email);
+    try {
+      const obj = {
+        email: values.email,
+      };
+      const response = await FORGOT_PASSWORD(obj);
+      console.log(response, 'this response i want for reset password');
+
+      if (response?.code === '101') {
+        setIsLoading(false);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: response?.msg || 'User not found',
+          visibilityTime: 3000,
+        });
+        return;
+      }
+
+      setIsLoading(false);
+      setShowModal(true);
+    } catch (error) {
+      setIsLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error.msg || 'Something went wrong',
+        text3: ' user not found',
+        visibilityTime: 3000,
+      });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -43,18 +85,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
             <Formik
               initialValues={{ email: '' }}
               validationSchema={ForgotSchema}
-              onSubmit={values => {
-                // TODO: call API to send OTP
-                Toast.show({
-                  type: 'success',
-                  text1: 'OTP Sent',
-                  text2: `A verification code was sent to ${values.email}`,
-                  visibilityTime: 2500,
-                });
-                setTimeout(() => {
-                  navigation.navigate('OTPScreen', { email: values.email });
-                }, 2000);
-              }}
+              onSubmit={handleForgotPassword}
             >
               {({
                 handleChange,
@@ -82,8 +113,13 @@ const ForgotPasswordScreen = ({ navigation }) => {
                   <TouchableOpacity
                     style={styles.button}
                     onPress={handleSubmit}
+                    disabled={isLoading}
                   >
-                    <Text style={styles.buttonText}>Send Code</Text>
+                    {isLoading ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text style={styles.buttonText}>Send Code</Text>
+                    )}
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -100,6 +136,32 @@ const ForgotPasswordScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={showModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Check your email</Text>
+            <Text style={styles.modalMessage}>
+              We have sent a password reset code to your email.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                setShowModal(false);
+                navigation.navigate('SignInScreen');
+              }}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Toast />
     </SafeAreaView>
   );
@@ -137,4 +199,47 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: '#000', fontFamily: 'Helvetica-Bold' },
   error: { color: '#ff7675', marginBottom: VS(8), fontFamily: 'Helvetica' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: MS(20),
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#1d1c1cff',
+    borderRadius: MS(14),
+    padding: MS(20),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: MS(18),
+    fontFamily: 'Helvetica-Bold',
+    marginBottom: VS(12),
+  },
+  modalMessage: {
+    color: '#ccc',
+    fontSize: MS(14),
+    fontFamily: 'Helvetica',
+    textAlign: 'center',
+    marginBottom: VS(20),
+    lineHeight: VS(20),
+  },
+  modalButton: {
+    backgroundColor: '#fff',
+    paddingVertical: VS(10),
+    paddingHorizontal: S(30),
+    borderRadius: MS(8),
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#000',
+    fontFamily: 'Helvetica-Bold',
+    fontSize: MS(14),
+  },
 });

@@ -49,6 +49,19 @@ const initialMessages = [
   },
 ];
 
+const OUTPUT_INSTRUCTIONS = `
+🚫 Output Restrictions:
+
+- DO NOT use any CSS or <style> tags.
+
+- Output must be clean and readable without any styling or formatting instructions.
+
+- Avoid inline styles, classes, or styled elements of any kind.
+
+- Only use basic HTML elements like <div>, <p>, <ul>, <li>, <b>, <br>, <table>, <h4> etc etc if needed — no formatting enhancements beyond structure.
+
+- The response should prioritize clarity, conciseness, and structure over appearance.`;
+
 // ── Moved outside component to avoid re-creation on every render ──
 const TAG_STYLES = {
   body: {
@@ -283,10 +296,11 @@ const ChatMessage = memo(
 );
 
 // ── Main component ──
-export default function AiChat({ navigation }) {
+export default function AgentScreen({ navigation, route }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const listRef = useRef(null);
+  const { prompt } = route.params || {};
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -318,133 +332,149 @@ export default function AiChat({ navigation }) {
     }
   }, [messages, scrollToBottom]);
 
-  const handleSend = useCallback(() => {
-    if (!input.trim()) return;
-    const userMsg = {
-      id: String(Date.now()),
-      role: 'user',
-      text: input.trim(),
-    };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
+  const handleSend = useCallback(
+    (customText = null) => {
+      const isCustom = typeof customText === 'string';
+      const textToSend = isCustom ? customText : input;
 
-    const thinkingId = `thinking-${Date.now()}`;
-    const thinkingMsg = {
-      id: thinkingId,
-      role: 'bot',
-      text: 'Thinking...',
-      thinking: true,
-    };
-    setMessages(prev => [...prev, thinkingMsg]);
-
-    (async () => {
-      if (!session) {
-        console.warn('No session — cannot send to AI.');
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === thinkingId
-              ? { ...m, text: 'No AI session', thinking: false }
-              : m,
-          ),
-        );
-        return;
-      }
-
-      const payload = {
-        agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
-        session_id: session,
-        query: userMsg.text,
+      if (!textToSend.trim()) return;
+      const userMsg = {
+        id: String(Date.now()),
+        role: 'user',
+        text: textToSend.trim(),
       };
+      setMessages(prev => [...prev, userMsg]);
+      if (!isCustom) setInput('');
 
-      try {
-        setIsLoading(true);
-        streamBufferRef.current = '';
+      const thinkingId = `thinking-${Date.now()}`;
+      const thinkingMsg = {
+        id: thinkingId,
+        role: 'bot',
+        text: 'Thinking...',
+        thinking: true,
+      };
+      setMessages(prev => [...prev, thinkingMsg]);
 
-        // Tool status callback: show which tool is being used
-        const onToolStatus = status => {
+      (async () => {
+        if (!session) {
+          console.warn('No session — cannot send to AI.');
           setMessages(prev =>
             prev.map(m =>
-              m.id === thinkingId ? { ...m, text: status, thinking: true } : m,
+              m.id === thinkingId
+                ? { ...m, text: 'No AI session', thinking: false }
+                : m,
             ),
           );
+          return;
+        }
+
+        const payload = {
+          agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
+          session_id: session,
+          query: `${userMsg.text}\n\n${OUTPUT_INSTRUCTIONS}`,
         };
 
-        // Streaming callback: progressively update the bot message
-        const onChunk = accumulated => {
-          streamBufferRef.current = accumulated;
+        try {
+          setIsLoading(true);
+          streamBufferRef.current = '';
 
-          // Debounce UI updates to ~200ms to avoid excessive re-renders
-          if (!streamTimerRef.current) {
-            streamTimerRef.current = setTimeout(() => {
-              streamTimerRef.current = null;
-              const currentText = streamBufferRef.current;
-              if (currentText) {
-                setMessages(prev =>
-                  prev.map(m =>
-                    m.id === thinkingId
-                      ? { ...m, text: currentText, thinking: false }
-                      : m,
-                  ),
-                );
-              }
-            }, 200);
+          // Tool status callback: show which tool is being used
+          const onToolStatus = status => {
+            setMessages(prev =>
+              prev.map(m =>
+                m.id === thinkingId
+                  ? { ...m, text: status, thinking: true }
+                  : m,
+              ),
+            );
+          };
+
+          // Streaming callback: progressively update the bot message
+          const onChunk = accumulated => {
+            streamBufferRef.current = accumulated;
+
+            // Debounce UI updates to ~200ms to avoid excessive re-renders
+            if (!streamTimerRef.current) {
+              streamTimerRef.current = setTimeout(() => {
+                streamTimerRef.current = null;
+                const currentText = streamBufferRef.current;
+                if (currentText) {
+                  setMessages(prev =>
+                    prev.map(m =>
+                      m.id === thinkingId
+                        ? { ...m, text: currentText, thinking: false }
+                        : m,
+                    ),
+                  );
+                }
+              }, 200);
+            }
+          };
+
+          const finalText = await AI_CHATTING_STREAM(
+            payload,
+            onChunk,
+            onToolStatus,
+          );
+
+          // Clear any pending timer and do a final update
+          if (streamTimerRef.current) {
+            clearTimeout(streamTimerRef.current);
+            streamTimerRef.current = null;
           }
-        };
 
-        const finalText = await AI_CHATTING_STREAM(
-          payload,
-          onChunk,
-          onToolStatus,
-        );
+          const cleanedText = (finalText || '')
+            .replace(/\[object Object\]/g, '')
+            .trim();
 
-        // Clear any pending timer and do a final update
-        if (streamTimerRef.current) {
-          clearTimeout(streamTimerRef.current);
-          streamTimerRef.current = null;
+          console.log('AI Response received, text length:', cleanedText.length);
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === thinkingId
+                ? {
+                    ...m,
+                    text: cleanedText || 'No response received.',
+                    thinking: false,
+                  }
+                : m,
+            ),
+          );
+        } catch (err) {
+          console.log('AI chat error:', err);
+          if (streamTimerRef.current) {
+            clearTimeout(streamTimerRef.current);
+            streamTimerRef.current = null;
+          }
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === thinkingId
+                ? {
+                    ...m,
+                    text: err?.message || 'Sorry, something went wrong.',
+                    thinking: false,
+                  }
+                : m,
+            ),
+          );
+        } finally {
+          setIsLoading(false);
         }
-
-        const cleanedText = (finalText || '')
-          .replace(/\[object Object\]/g, '')
-          .trim();
-
-        console.log('AI Response received, text length:', cleanedText.length);
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === thinkingId
-              ? {
-                  ...m,
-                  text: cleanedText || 'No response received.',
-                  thinking: false,
-                }
-              : m,
-          ),
-        );
-      } catch (err) {
-        console.log('AI chat error:', err);
-        if (streamTimerRef.current) {
-          clearTimeout(streamTimerRef.current);
-          streamTimerRef.current = null;
-        }
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === thinkingId
-              ? {
-                  ...m,
-                  text: err?.message || 'Sorry, something went wrong.',
-                  thinking: false,
-                }
-              : m,
-          ),
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [input, session]);
+      })();
+    },
+    [input, session],
+  );
 
   useEffect(() => {
     CreateSession();
   }, []);
+
+  const lastSentPromptRef = useRef(null);
+  useEffect(() => {
+    if (prompt && session && lastSentPromptRef.current !== prompt) {
+      lastSentPromptRef.current = prompt;
+      handleSend(prompt);
+    }
+  }, [prompt, session, handleSend]);
 
   const CreateSession = async () => {
     const aiToken = store.getState()?.user?.aiToken;
@@ -501,15 +531,15 @@ export default function AiChat({ navigation }) {
       type: 'success',
       text1: 'Feedback Submitted!',
       visibilityTime: 2500,
-      position: 'bottom',
+      position: 'top',
     });
   }, [rating, feedbackText]);
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -729,7 +759,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 4,
   },
   bubbleUser: {
-    backgroundColor: SubHeadingColor,
+    backgroundColor: '#ffff',
     borderTopRightRadius: 4,
     alignSelf: 'flex-end',
   },
