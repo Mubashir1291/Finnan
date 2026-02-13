@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -16,26 +16,30 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import RenderHTML from 'react-native-render-html';
 import {
-  PrimaryColor,
-  SecondaryColor,
-  HeadingColor,
-  SubHeadingColor,
   BorderColor,
   ButtonsColor,
-  BotBubbleColor,
-  UserBubbleColor,
+  HeadingColor,
   InputBgColor,
+  PrimaryColor,
+  SecondaryColor,
+  SubHeadingColor,
 } from '../../utils/Colors';
-import { StarsIcon, MenuIcon, CopyIcon, ThumbIcon } from '../../assets/Index';
-import { CHAT, SESSION_AI } from '../../services/AppServices';
-import { AI_CHATTING, userSession } from '../../services/config';
+
+import {
+  ai,
+  BackArrowIcon,
+  CopyIcon,
+  StarsIcon,
+  ThumbIcon,
+} from '../../assets/Index';
+import { userSession, AI_CHATTING_STREAM } from '../../services/config';
 import { store } from '../../redux/store';
-import { Rating } from 'react-native-ratings';
 import { MS, S, VS } from '../../utils/Responsive';
+import { Rating } from 'react-native-ratings';
 
 const initialMessages = [
   {
@@ -45,242 +49,95 @@ const initialMessages = [
   },
 ];
 
-export default function AgentScreen({ navigation, route }) {
-  const [messages, setMessages] = useState(initialMessages);
-  const [input, setInput] = useState('');
-  const listRef = useRef(null);
-  const [session, setSession] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
-  const { width, height } = useWindowDimensions();
-  const { prompt } = route.params || {};
-  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [selectedMessageForFeedback, setSelectedMessageForFeedback] =
-    useState(null);
-  const [rating, setRating] = useState(0);
-  const [feedbackText, setFeedbackText] = useState('');
-  const isMounted = useRef(true);
+// ── Moved outside component to avoid re-creation on every render ──
+const TAG_STYLES = {
+  body: {
+    fontFamily: 'Helvetica',
+    color: HeadingColor,
+    lineHeight: 22,
+    fontSize: 14,
+  },
+  p: {
+    fontFamily: 'Helvetica',
+    marginVertical: 4,
+    color: HeadingColor,
+    lineHeight: 22,
+    fontSize: 14,
+  },
+  b: { fontFamily: 'Helvetica-Bold', color: HeadingColor },
+  strong: { fontFamily: 'Helvetica-Bold', color: HeadingColor },
+  h1: {
+    fontSize: 20,
+    fontFamily: 'Helvetica-Bold',
+    color: HeadingColor,
+    marginVertical: 8,
+  },
+  h2: {
+    fontSize: 18,
+    fontFamily: 'Helvetica-Bold',
+    color: HeadingColor,
+    marginVertical: 6,
+  },
+  h3: {
+    fontSize: 16,
+    fontFamily: 'Helvetica-Bold',
+    color: HeadingColor,
+    marginVertical: 4,
+  },
+  h4: {
+    fontSize: 15,
+    fontFamily: 'Helvetica-Bold',
+    color: HeadingColor,
+    marginVertical: 4,
+  },
+  table: {
+    marginVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 6,
+    overflow: 'hidden',
+    alignSelf: 'flex-start',
+  },
+  thead: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  tbody: {},
+  tr: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.15)',
+  },
+  th: {
+    width: 80,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 11,
+    color: HeadingColor,
+    textAlign: 'center',
+  },
+  td: {
+    width: 80,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    fontSize: 11,
+    fontFamily: 'Helvetica',
+    color: SubHeadingColor,
+    textAlign: 'center',
+  },
+  ul: { marginVertical: 4, paddingLeft: 16 },
+  li: { marginVertical: 2, color: HeadingColor, fontFamily: 'Helvetica' },
+  a: { color: '#4da6ff', textDecorationLine: 'underline' },
+};
 
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-  useEffect(() => {
-    CreateSession();
-  }, []);
+const BASE_STYLE = {
+  fontFamily: 'Helvetica',
+  color: HeadingColor,
+  fontSize: 14,
+};
+const IGNORED_TAGS = ['script', 'style', 'head', 'meta', 'link'];
 
-  useEffect(() => {
-    const initChat = async () => {
-      let currentSession = session;
-      if (!currentSession) {
-        currentSession = await CreateSession();
-      }
-      if (prompt && currentSession) {
-        setTimeout(() => {
-          handleSend(prompt, currentSession);
-        }, 500);
-      }
-    };
-    initChat();
-  }, [prompt]);
-
-  const CreateSession = async () => {
-    const obj = {
-      platform_id: 'interdiscvr',
-      agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
-      mode: 'agent',
-    };
-    try {
-      const response = await userSession(obj);
-      setSession(response?.session_id);
-      return response?.session_id;
-    } catch (error) {
-      console.log(error, 'Session error');
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    if (listRef.current && messages.length) {
-      setTimeout(() => listRef.current.scrollToEnd({ animated: true }), 100);
-    }
-  }, [messages]);
-
-  const handleSend = (text = null, manualSessionId = null) => {
-    const textToSend = typeof text === 'string' ? text : input;
-    if (!textToSend.trim()) return;
-
-    const userMsg = {
-      id: String(Date.now()),
-      role: 'user',
-      text: textToSend.trim(),
-    };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-
-    const thinkingId = `thinking-${Date.now()}`;
-    const thinkingMsg = {
-      id: thinkingId,
-      role: 'bot',
-      text: 'Thinking...',
-      thinking: true,
-    };
-    setMessages(prev => [...prev, thinkingMsg]);
-
-    (async () => {
-      let activeSession = manualSessionId || session;
-      if (!activeSession) activeSession = await CreateSession();
-      if (!activeSession) {
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === thinkingId
-              ? { ...m, text: 'No AI session', thinking: false }
-              : m,
-          ),
-        );
-        return;
-      }
-
-      const payload = {
-        agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
-        session_id: activeSession,
-        query: userMsg.text,
-      };
-
-      try {
-        const res = await AI_CHATTING(payload);
-
-        const extractText = value => {
-          if (typeof value === 'string') return value;
-          if (value === null || value === undefined) return '';
-          if (typeof value === 'object') {
-            if (value.image || value.img || value.src || value.url) {
-              const imgSrc = value.image || value.img || value.src || value.url;
-              if (
-                typeof imgSrc === 'string' &&
-                (imgSrc.startsWith('http') || imgSrc.startsWith('data:'))
-              ) {
-                const alt =
-                  value.alt || value.title || value.caption || 'Image';
-                return `<img src="${imgSrc}" alt="${alt}" style="max-width: 100%; border-radius: 8px; margin: 8px 0;" />`;
-              }
-            }
-            if (value.images && Array.isArray(value.images)) {
-              return value.images
-                .map(img => {
-                  const imgSrc =
-                    typeof img === 'string'
-                      ? img
-                      : img.url || img.src || img.image;
-                  if (imgSrc) {
-                    return `<img src="${imgSrc}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;" />`;
-                  }
-                  return '';
-                })
-                .filter(Boolean)
-                .join('');
-            }
-            if (value.text) return extractText(value.text);
-            if (value.content) return extractText(value.content);
-            if (value.html) return extractText(value.html);
-            if (value.message) return extractText(value.message);
-            if (value.output) return extractText(value.output);
-            if (Array.isArray(value)) {
-              return value
-                .map(v => extractText(v))
-                .filter(Boolean)
-                .join('');
-            }
-            const keys = Object.keys(value);
-            if (keys.length === 0) return '';
-            let result = '';
-            for (const key of keys) {
-              const extracted = extractText(value[key]);
-              if (extracted && extracted !== '[object Object]')
-                result += extracted;
-            }
-            return result || '';
-          }
-          return String(value);
-        };
-
-        let botText = extractText(
-          res?.output ||
-            res?.message ||
-            res?.reply ||
-            res?.data?.output ||
-            res?.data?.message ||
-            res,
-        );
-        botText = botText.replace(/\[object Object\]/g, '').trim();
-
-        // ✅ Smooth fast typing with requestAnimationFrame
-        let currentText = '';
-        let i = 0;
-        const speed = 18; // characters per frame
-
-        const type = () => {
-          if (!isMounted.current) return;
-          let count = 0;
-          while (i < botText.length && count < speed) {
-            if (botText[i] === '<') {
-              let tag = '';
-              while (i < botText.length && botText[i] !== '>') {
-                tag += botText[i];
-                i++;
-              }
-              if (i < botText.length) (tag += '>'), i++;
-              currentText += tag;
-            } else {
-              currentText += botText[i];
-              i++;
-            }
-            count++;
-          }
-
-          setMessages(prev =>
-            prev.map(m =>
-              m.id === thinkingId
-                ? { ...m, text: currentText, thinking: false }
-                : m,
-            ),
-          );
-          listRef.current?.scrollToEnd({ animated: false });
-          if (i < botText.length) requestAnimationFrame(type);
-        };
-
-        requestAnimationFrame(type);
-      } catch (err) {
-        console.log('AI chat error:', err);
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === thinkingId
-              ? { ...m, text: 'Sorry, something went wrong.', thinking: false }
-              : m,
-          ),
-        );
-      }
-    })();
-  };
-
-  const handleStartNewConversation = () => {
-    setMessages(initialMessages);
-  };
-
-  const handleFeedbackSubmit = () => {
-    console.log('Feedback submitted:', {
-      messageId: selectedMessageForFeedback?.id,
-      rating,
-      feedback: feedbackText,
-    });
-    setFeedbackModalVisible(false);
-    setRating(0);
-    setFeedbackText('');
-    setSelectedMessageForFeedback(null);
-  };
-
-  const renderItem = ({ item }) => {
+// ── Memoized message — only re-renders when its own item changes ──
+const ChatMessage = memo(
+  ({ item, contentWidth, onPreviewImage, onFeedback }) => {
     const isUser = item.role === 'user';
 
     let processedText = item.text;
@@ -306,98 +163,19 @@ export default function AgentScreen({ navigation, route }) {
       typeof textWithoutImages === 'string' &&
       /<table/i.test(textWithoutImages);
 
-    const tagsStyles = {
-      body: {
-        color: HeadingColor,
-        lineHeight: 22,
-        fontSize: MS(14),
-        fontFamily: 'Helvetica',
-      },
-      p: {
-        marginVertical: VS(4),
-        color: HeadingColor,
-        lineHeight: 22,
-        fontSize: MS(14),
-        fontFamily: 'Helvetica',
-      },
-      b: { fontFamily: 'Helvetica-Bold', color: HeadingColor },
-      strong: { fontFamily: 'Helvetica-Bold', color: HeadingColor },
-      h1: {
-        fontSize: MS(20),
-        fontFamily: 'Helvetica-Bold',
-        color: HeadingColor,
-        marginVertical: VS(8),
-      },
-      h2: {
-        fontSize: MS(18),
-        fontFamily: 'Helvetica-Bold',
-        color: HeadingColor,
-        marginVertical: VS(6),
-      },
-      h3: {
-        fontSize: MS(16),
-        fontFamily: 'Helvetica-Bold',
-        color: HeadingColor,
-        marginVertical: VS(4),
-      },
-      h4: {
-        fontSize: MS(15),
-        fontFamily: 'Helvetica-Bold',
-        color: HeadingColor,
-        marginVertical: VS(4),
-      },
-      table: { marginVertical: VS(12), width: '100%' },
-      tr: {
-        flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.1)',
-      },
-      th: {
-        paddingVertical: VS(8),
-        paddingHorizontal: S(8),
-        fontFamily: 'Helvetica-Bold',
-        fontSize: MS(13),
-        color: HeadingColor,
-        minWidth: S(80),
-      },
-      td: {
-        paddingVertical: VS(8),
-        paddingHorizontal: S(8),
-        fontSize: MS(13),
-        color: SubHeadingColor,
-        minWidth: S(80),
-        fontFamily: 'Helvetica',
-      },
-      ul: {
-        marginVertical: VS(4),
-        paddingLeft: S(16),
-        fontFamily: 'Helvetica',
-      },
-      li: {
-        marginVertical: VS(2),
-        color: HeadingColor,
-        fontFamily: 'Helvetica',
-      },
-      a: {
-        color: '#4da6ff',
-        textDecorationLine: 'underline',
-        fontFamily: 'Helvetica',
-      },
-    };
-
     const imageGallery =
       images.length > 0 ? (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ marginVertical: VS(8) }}
+          style={{ marginVertical: 8 }}
           contentContainerStyle={{ gap: 10 }}
         >
           {images.map((imgSrc, index) => (
             <TouchableOpacity
               key={index}
               activeOpacity={0.8}
-              onPress={() => setPreviewImage(imgSrc)}
+              onPress={() => onPreviewImage(imgSrc)}
             >
               <Image
                 source={{ uri: imgSrc }}
@@ -411,12 +189,12 @@ export default function AgentScreen({ navigation, route }) {
 
     const htmlContent = textWithoutImages ? (
       <RenderHTML
-        contentWidth={width - 80}
+        contentWidth={contentWidth}
         source={{ html: textWithoutImages }}
-        baseStyle={{ color: HeadingColor, fontSize: MS(14) }}
-        tagsStyles={tagsStyles}
+        baseStyle={BASE_STYLE}
+        tagsStyles={TAG_STYLES}
         enableExperimentalBRCollapsing={true}
-        ignoredDomTags={['script', 'style', 'head', 'meta', 'link']}
+        ignoredDomTags={IGNORED_TAGS}
         renderersProps={{
           a: {
             onPress: (_, href) => {
@@ -433,13 +211,6 @@ export default function AgentScreen({ navigation, route }) {
 
     return (
       <View style={[styles.messageRow, isUser && styles.messageRowRight]}>
-        {/* Bot icon */}
-        {/* {!isUser && (
-          <View style={styles.botIconContainer}>
-            <Image source={StarsIcon} style={styles.botIcon} />
-          </View>
-        )} */}
-
         <View style={styles.messageContent}>
           <View
             style={[
@@ -455,30 +226,28 @@ export default function AgentScreen({ navigation, route }) {
             ) : (
               <>
                 {imageGallery}
-                {isHtml ? (
-                  <ScrollView
-                    horizontal={hasTable}
-                    showsHorizontalScrollIndicator={hasTable}
-                    nestedScrollEnabled={true}
-                  >
-                    {htmlContent}
-                  </ScrollView>
-                ) : (
-                  textWithoutImages && (
-                    <Text
-                      style={[
-                        styles.messageText,
-                        isUser && styles.messageTextUser,
-                      ]}
-                    >
-                      {textWithoutImages}
-                    </Text>
-                  )
-                )}
+                {isUser
+                  ? textWithoutImages && (
+                      <Text
+                        style={[styles.messageText, styles.messageTextUser]}
+                      >
+                        {textWithoutImages}
+                      </Text>
+                    )
+                  : textWithoutImages && (
+                      <ScrollView
+                        horizontal={hasTable}
+                        showsHorizontalScrollIndicator={hasTable}
+                        nestedScrollEnabled={true}
+                      >
+                        {htmlContent}
+                      </ScrollView>
+                    )}
               </>
             )}
           </View>
 
+          {/* Copy button for bot messages */}
           {/* Copy button for bot messages */}
           {!isUser && !item.thinking && item.id !== '1' && (
             <View style={styles.actionButtonsContainer}>
@@ -500,8 +269,7 @@ export default function AgentScreen({ navigation, route }) {
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => {
-                  // setSelectedMessageForFeedback(item);
-                  setFeedbackModalVisible(true);
+                  if (onFeedback) onFeedback(item);
                 }}
               >
                 <Image source={ThumbIcon} style={styles.copyIcon} />
@@ -511,39 +279,264 @@ export default function AgentScreen({ navigation, route }) {
         </View>
       </View>
     );
+  },
+);
+
+// ── Main component ──
+export default function AiChat({ navigation }) {
+  const [messages, setMessages] = useState(initialMessages);
+  const [input, setInput] = useState('');
+  const listRef = useRef(null);
+  const [session, setSession] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const { width, height } = useWindowDimensions();
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [rating, setRating] = useState(0);
+  const contentWidth = width - 80;
+
+  // Refs for streaming debounce
+  const streamBufferRef = useRef('');
+  const streamTimerRef = useRef(null);
+  const scrollTimerRef = useRef(null);
+
+  // Throttled scroll — max once per 300ms to avoid scroll storms
+  const scrollToBottom = useCallback(() => {
+    if (scrollTimerRef.current) return;
+    scrollTimerRef.current = setTimeout(() => {
+      scrollTimerRef.current = null;
+      if (listRef.current) {
+        listRef.current.scrollToEnd({ animated: true });
+      }
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    if (messages.length) {
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom]);
+
+  const handleSend = useCallback(() => {
+    if (!input.trim()) return;
+    const userMsg = {
+      id: String(Date.now()),
+      role: 'user',
+      text: input.trim(),
+    };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+
+    const thinkingId = `thinking-${Date.now()}`;
+    const thinkingMsg = {
+      id: thinkingId,
+      role: 'bot',
+      text: 'Thinking...',
+      thinking: true,
+    };
+    setMessages(prev => [...prev, thinkingMsg]);
+
+    (async () => {
+      if (!session) {
+        console.warn('No session — cannot send to AI.');
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === thinkingId
+              ? { ...m, text: 'No AI session', thinking: false }
+              : m,
+          ),
+        );
+        return;
+      }
+
+      const payload = {
+        agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
+        session_id: session,
+        query: userMsg.text,
+      };
+
+      try {
+        setIsLoading(true);
+        streamBufferRef.current = '';
+
+        // Tool status callback: show which tool is being used
+        const onToolStatus = status => {
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === thinkingId ? { ...m, text: status, thinking: true } : m,
+            ),
+          );
+        };
+
+        // Streaming callback: progressively update the bot message
+        const onChunk = accumulated => {
+          streamBufferRef.current = accumulated;
+
+          // Debounce UI updates to ~200ms to avoid excessive re-renders
+          if (!streamTimerRef.current) {
+            streamTimerRef.current = setTimeout(() => {
+              streamTimerRef.current = null;
+              const currentText = streamBufferRef.current;
+              if (currentText) {
+                setMessages(prev =>
+                  prev.map(m =>
+                    m.id === thinkingId
+                      ? { ...m, text: currentText, thinking: false }
+                      : m,
+                  ),
+                );
+              }
+            }, 200);
+          }
+        };
+
+        const finalText = await AI_CHATTING_STREAM(
+          payload,
+          onChunk,
+          onToolStatus,
+        );
+
+        // Clear any pending timer and do a final update
+        if (streamTimerRef.current) {
+          clearTimeout(streamTimerRef.current);
+          streamTimerRef.current = null;
+        }
+
+        const cleanedText = (finalText || '')
+          .replace(/\[object Object\]/g, '')
+          .trim();
+
+        console.log('AI Response received, text length:', cleanedText.length);
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === thinkingId
+              ? {
+                  ...m,
+                  text: cleanedText || 'No response received.',
+                  thinking: false,
+                }
+              : m,
+          ),
+        );
+      } catch (err) {
+        console.log('AI chat error:', err);
+        if (streamTimerRef.current) {
+          clearTimeout(streamTimerRef.current);
+          streamTimerRef.current = null;
+        }
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === thinkingId
+              ? {
+                  ...m,
+                  text: err?.message || 'Sorry, something went wrong.',
+                  thinking: false,
+                }
+              : m,
+          ),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [input, session]);
+
+  useEffect(() => {
+    CreateSession();
+  }, []);
+
+  const CreateSession = async () => {
+    const aiToken = store.getState()?.user?.aiToken;
+    if (!aiToken) {
+      console.log(
+        'AI token missing — skip creating session. Call AI login first.',
+      );
+      return;
+    }
+    const obj = {
+      platform_id: 'interdiscvr',
+      agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
+      mode: 'agent',
+    };
+    try {
+      const response = await userSession(obj);
+      console.log('Session created:', response);
+      setSession(response?.session_id);
+    } catch (error) {
+      console.log('Error creating session:', error);
+    }
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => navigation?.openDrawer?.() || navigation?.goBack?.()}
-          >
-            <Image source={MenuIcon} style={styles.headerIcon} />
-          </TouchableOpacity>
-          <View style={{ flex: 1 }} />
-          <TouchableOpacity activeOpacity={0.7}>
-            {/* <View style={styles.chatIconContainer}>
-            <Image source={StarsIcon} style={styles.chatIconText} />
-          </View> */}
-          </TouchableOpacity>
-        </View>
+  const handlePreviewImage = useCallback(imgSrc => {
+    setPreviewImage(imgSrc);
+  }, []);
 
-        <FlatList
-          ref={listRef}
-          data={messages}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
+  const handleFeedback = useCallback(() => {
+    setFeedbackModalVisible(true);
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <ChatMessage
+        item={item}
+        contentWidth={contentWidth}
+        onPreviewImage={handlePreviewImage}
+        onFeedback={handleFeedback}
+      />
+    ),
+    [contentWidth, handlePreviewImage, handleFeedback],
+  );
+
+  const keyExtractor = useCallback(item => item.id, []);
+
+  const handleStartNewConversation = useCallback(() => {
+    setMessages(initialMessages);
+  }, []);
+  const handleFeedbackSubmit = useCallback(() => {
+    // Here you would send `rating` and `feedbackText` to your backend or analytics service
+    console.log('Feedback submitted:', { rating, feedbackText });
+    setFeedbackModalVisible(false);
+    Toast.show({
+      type: 'success',
+      text1: 'Feedback Submitted!',
+      visibilityTime: 2500,
+      position: 'bottom',
+    });
+  }, [rating, feedbackText]);
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={90}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => navigation.goBack()}
+        >
+          <Image source={BackArrowIcon} style={styles.iconSmall} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>FINNAN</Text>
+        <TouchableOpacity style={{ width: '5%' }} activeOpacity={0.7}>
+          {/* Placeholder for right side */}
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        ref={listRef}
+        data={messages}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={5}
+        windowSize={7}
+        ListHeaderComponent={
+          <>
             <View style={styles.headerSection}>
               <View style={styles.titleRow}>
                 <Text style={styles.mainTitle}>ASK Finnan</Text>
@@ -562,105 +555,105 @@ export default function AgentScreen({ navigation, route }) {
                 </Text>
               </TouchableOpacity>
             </View>
-          }
+          </>
+        }
+      />
+
+      {/* Input Row */}
+      <View style={styles.inputRow}>
+        <TextInput
+          style={styles.input}
+          placeholder="Ask Anything from Finnan..."
+          placeholderTextColor={SubHeadingColor}
+          value={input}
+          onChangeText={setInput}
+          returnKeyType="send"
+          onSubmitEditing={handleSend}
+          multiline
         />
-
-        {/* Input Row */}
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            placeholder="Ask Anything from Finnan"
-            placeholderTextColor={SubHeadingColor}
-            value={input}
-            onChangeText={setInput}
-            returnKeyType="send"
-            onSubmitEditing={handleSend}
-            multiline
-          />
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={handleSend}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={PrimaryColor} size="small" />
-            ) : (
-              <Text style={styles.sendIcon}>➤</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Image Preview Modal */}
-        <Modal
-          visible={!!previewImage}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setPreviewImage(null)}
+        <TouchableOpacity
+          style={{ ...styles.sendButton, opacity: isLoading ? 0.7 : 1 }}
+          onPress={handleSend}
+          disabled={isLoading}
         >
-          <Pressable
-            style={styles.modalOverlay}
+          <Text style={styles.sendIcon}>➤</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={!!previewImage}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setPreviewImage(null)}
+        >
+          {previewImage && (
+            <Image
+              source={{ uri: previewImage }}
+              style={{
+                width: width - 40,
+                height: height * 0.7,
+                borderRadius: 12,
+              }}
+              resizeMode="contain"
+            />
+          )}
+          <TouchableOpacity
+            style={styles.closeButton}
             onPress={() => setPreviewImage(null)}
           >
-            {previewImage && (
-              <Image
-                source={{ uri: previewImage }}
-                style={[
-                  styles.previewImage,
-                  { width: width - S(40), height: height * 0.7 },
-                ]}
-                resizeMode="contain"
+            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
+              ✕
+            </Text>
+          </TouchableOpacity>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={feedbackModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFeedbackModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setFeedbackModalVisible(false)}
+        >
+          <Pressable style={styles.feedbackModalContainer}>
+            <Text style={styles.feedbackTitle}>Rate this response</Text>
+            <View style={styles.ratingContainer}>
+              <Rating
+                type="star"
+                ratingCount={5}
+                imageSize={45}
+                tintColor={InputBgColor}
+                onFinishRating={setRating}
+                startingValue={0}
               />
-            )}
+            </View>
+            <TextInput
+              style={styles.feedbackInput}
+              placeholder="Tell us more..."
+              placeholderTextColor={SubHeadingColor}
+              value={feedbackText}
+              onChangeText={setFeedbackText}
+            />
             <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setPreviewImage(null)}
+              style={styles.submitFeedbackButton}
+              onPress={handleFeedbackSubmit}
             >
-              <Text style={styles.closeButtonText}>✕</Text>
+              <Text style={styles.submitFeedbackText}>Submit Feedback</Text>
             </TouchableOpacity>
           </Pressable>
-        </Modal>
+        </Pressable>
+      </Modal>
 
-        {/* Feedback Modal */}
-        <Modal
-          visible={feedbackModalVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setFeedbackModalVisible(false)}
-        >
-          <Pressable
-            style={styles.modalOverlay}
-            onPress={() => setFeedbackModalVisible(false)}
-          >
-            <Pressable style={styles.feedbackModalContainer}>
-              <Text style={styles.feedbackTitle}>Rate this response</Text>
-              <View style={styles.ratingContainer}>
-                <Rating
-                  type="star"
-                  ratingCount={5}
-                  imageSize={45}
-                  tintColor={InputBgColor}
-                  onFinishRating={setRating}
-                  startingValue={0}
-                />
-              </View>
-              <TextInput
-                style={styles.feedbackInput}
-                placeholder="Tell us more..."
-                placeholderTextColor={SubHeadingColor}
-                value={feedbackText}
-                onChangeText={setFeedbackText}
-              />
-              <TouchableOpacity
-                style={styles.submitFeedbackButton}
-                onPress={handleFeedbackSubmit}
-              >
-                <Text style={styles.submitFeedbackText}>Submit Feedback</Text>
-              </TouchableOpacity>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      <Toast />
+    </KeyboardAvoidingView>
   );
 }
 
@@ -670,29 +663,161 @@ const styles = StyleSheet.create({
     backgroundColor: PrimaryColor,
   },
   header: {
+    height: 60,
+    backgroundColor: PrimaryColor,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: S(16),
-    paddingVertical: VS(12),
-    backgroundColor: PrimaryColor,
+    justifyContent: 'space-between',
   },
-  headerIcon: {
-    width: S(24),
-    height: VS(24),
-    tintColor: HeadingColor,
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontFamily: 'Helvetica-Bold',
+    marginTop: VS(5),
+  },
+  iconSmall: {
+    width: 20,
+    height: 20,
     resizeMode: 'contain',
+    tintColor: '#fff',
   },
-  chatIconContainer: {
-    width: S(36),
-    height: VS(36),
-    borderRadius: MS(18),
+  newConversationButton: {
+    alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: BorderColor,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginBottom: 10,
+  },
+  newConversationText: {
+    color: HeadingColor,
+    fontSize: 14,
+    fontFamily: 'Helvetica',
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 20,
+  },
+  askJoseAi: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    marginVertical: 8,
+    alignItems: 'flex-start',
+  },
+  messageRowRight: {
+    justifyContent: 'flex-end',
+  },
+  messageContent: {
+    flex: 1,
+    maxWidth: '100%',
+  },
+  bubble: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  bubbleBot: {
+    backgroundColor: ButtonsColor,
+    borderTopLeftRadius: 4,
+  },
+  bubbleUser: {
+    backgroundColor: SubHeadingColor,
+    borderTopRightRadius: 4,
+    alignSelf: 'flex-end',
+  },
+  messageText: {
+    fontSize: 14,
+    color: HeadingColor,
+    lineHeight: 20,
+    fontFamily: 'Helvetica',
+  },
+  messageTextUser: {
+    color: PrimaryColor,
+  },
+  thinkingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  thinkingText: {
+    color: SubHeadingColor,
+    fontSize: 14,
+    fontFamily: 'Helvetica',
+  },
+  galleryImage: {
+    width: 180,
+    height: 140,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginLeft: 4,
+    gap: 12,
+  },
+  actionButton: {
+    padding: 4,
+  },
+  copyIcon: {
+    width: 18,
+    height: 18,
+    resizeMode: 'contain',
+    tintColor: SubHeadingColor,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: ButtonsColor,
+    alignItems: 'center',
+  },
+  input: {
+    color: HeadingColor,
+    fontFamily: 'Helvetica',
+    flex: 1,
+    minHeight: 40,
+    maxHeight: 120,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: BorderColor,
+    borderRadius: 24,
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: SecondaryColor,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 10,
   },
-  chatIconText: {
-    fontSize: MS(16),
+  sendIcon: {
+    fontSize: 20,
+    color: PrimaryColor,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    padding: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
   },
   headerSection: {
     paddingHorizontal: S(4),
@@ -728,165 +853,6 @@ const styles = StyleSheet.create({
     lineHeight: VS(20),
     marginBottom: VS(16),
     fontFamily: 'Helvetica',
-  },
-  newConversationButton: {
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: BorderColor,
-    borderRadius: MS(20),
-    paddingHorizontal: S(16),
-    paddingVertical: VS(10),
-  },
-  newConversationText: {
-    color: HeadingColor,
-    fontSize: MS(14),
-    fontFamily: 'Helvetica',
-  },
-  listContent: {
-    padding: MS(16),
-    paddingBottom: VS(20),
-  },
-  messageRow: {
-    flexDirection: 'row',
-    marginVertical: VS(8),
-    alignItems: 'flex-start',
-  },
-  messageRowRight: {
-    justifyContent: 'flex-end',
-  },
-  botIconContainer: {
-    width: S(36),
-    height: VS(36),
-    borderRadius: MS(18),
-    borderWidth: 1,
-    borderColor: BorderColor,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: S(10),
-  },
-  botIcon: {
-    width: S(18),
-    height: VS(18),
-    tintColor: HeadingColor,
-    resizeMode: 'contain',
-  },
-  messageContent: {
-    flex: 1,
-    maxWidth: '100%',
-  },
-  bubble: {
-    paddingHorizontal: S(14),
-    paddingVertical: VS(12),
-    borderRadius: MS(16),
-  },
-  bubbleBot: {
-    backgroundColor: BotBubbleColor,
-    borderTopLeftRadius: MS(4),
-  },
-  bubbleUser: {
-    backgroundColor: UserBubbleColor,
-    borderTopRightRadius: MS(4),
-    alignSelf: 'flex-end',
-  },
-  messageText: {
-    fontSize: MS(14),
-    color: HeadingColor,
-    lineHeight: 20,
-    fontFamily: 'Helvetica',
-  },
-  messageTextUser: {
-    color: HeadingColor,
-  },
-  thinkingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: MS(8),
-  },
-  thinkingText: {
-    color: SubHeadingColor,
-    fontSize: MS(14),
-    fontFamily: 'Helvetica',
-  },
-  galleryImage: {
-    width: S(180),
-    height: VS(140),
-    borderRadius: MS(12),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  copyIcon: {
-    width: S(18),
-    height: VS(18),
-    tintColor: HeadingColor,
-    resizeMode: 'contain',
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: VS(6),
-    alignSelf: 'flex-start',
-  },
-  actionButton: {
-    paddingVertical: VS(4),
-    paddingHorizontal: S(8),
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: S(16),
-    paddingVertical: VS(12),
-    backgroundColor: PrimaryColor,
-    borderTopWidth: 1,
-    borderTopColor: BorderColor,
-  },
-  input: {
-    flex: 1,
-    minHeight: VS(44),
-    maxHeight: VS(100),
-    paddingHorizontal: S(16),
-    paddingVertical: VS(10),
-    backgroundColor: InputBgColor,
-    borderRadius: MS(24),
-    color: HeadingColor,
-    fontSize: MS(14),
-    fontFamily: 'Helvetica',
-  },
-  sendButton: {
-    width: MS(44),
-    height: MS(44),
-    borderRadius: MS(22),
-    backgroundColor: SecondaryColor,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: S(10),
-  },
-  sendIcon: {
-    fontSize: MS(20),
-    color: PrimaryColor,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewImage: {
-    borderRadius: MS(12),
-  },
-  closeButton: {
-    position: 'absolute',
-    top: VS(50),
-    right: S(20),
-    width: S(40),
-    height: VS(40),
-    borderRadius: MS(20),
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeButtonText: {
-    color: HeadingColor,
-    fontSize: MS(20),
-    fontFamily: 'Helvetica-Bold',
   },
   feedbackModalContainer: {
     width: '85%',

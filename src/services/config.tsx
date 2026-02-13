@@ -143,6 +143,7 @@ export const Fetch = {
   upload,
 };
 
+// Chat AI API config
 const BASE_AI_URL = 'https://sse-feedalabs.webevis.com';
 
 function getAiToken() {
@@ -173,7 +174,6 @@ export const userLogin = async (payload: any) => {
 
 export const userSession = async (payload: any) => {
   const aiToken = getAiToken();
-  console.log(aiToken, 'tokennnnnnnnnnnnnnnnn');
   const headers: any = {
     'Content-Type': 'application/json',
   };
@@ -448,4 +448,221 @@ export const AI_CHATTING = async (payload: any) => {
   }
 
   return data;
+};
+
+// ───────── Streaming helper (shared stringify logic) ─────────
+const streamStringify = (val: any): string => {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') {
+    const urlKeys = [
+      'image',
+      'img',
+      'src',
+      'url',
+      'image_url',
+      'imageUrl',
+      'thumbnail',
+      'photo',
+      'link',
+      'href',
+    ];
+    for (const key of urlKeys) {
+      if (val[key] && typeof val[key] === 'string') {
+        const urlValue = val[key];
+        if (urlValue.startsWith('http://') || urlValue.startsWith('https://')) {
+          const imageExtensions = [
+            '.jpg',
+            '.jpeg',
+            '.png',
+            '.gif',
+            '.webp',
+            '.bmp',
+            '.svg',
+          ];
+          const lowerUrl = urlValue.toLowerCase();
+          const isImg =
+            imageExtensions.some(ext => lowerUrl.includes(ext)) ||
+            lowerUrl.includes('/images/') ||
+            lowerUrl.includes('/img/') ||
+            lowerUrl.includes('ytimg.com') ||
+            lowerUrl.includes('espncdn.com');
+
+          if (isImg) {
+            return `<img src="${urlValue}" alt="${
+              val.alt || val.title || 'Image'
+            }" class="chat-image" />`;
+          } else {
+            const title =
+              val.title ||
+              val.name ||
+              val.alt ||
+              urlValue.split('/').pop() ||
+              'Link';
+            return `<a href="${urlValue}" style="color: #4da6ff; text-decoration: underline;">${title}</a>`;
+          }
+        }
+      }
+    }
+    if (val.text) return streamStringify(val.text);
+    if (val.content) return streamStringify(val.content);
+    if (val.html) return streamStringify(val.html);
+    if (val.message) return streamStringify(val.message);
+    if (Array.isArray(val)) {
+      return val.map(v => streamStringify(v)).join('');
+    }
+    if (Object.keys(val).length === 0) return '';
+    const skipKeys = [
+      'type',
+      'role',
+      'id',
+      'timestamp',
+      'created_at',
+      'updated_at',
+    ];
+    let result = '';
+    for (const key of Object.keys(val)) {
+      if (skipKeys.includes(key)) continue;
+      const extracted = streamStringify(val[key]);
+      if (extracted) result += extracted;
+    }
+    return result;
+  }
+  return String(val);
+};
+
+/**
+ * Streaming variant of AI_CHATTING.
+ * Uses XMLHttpRequest onprogress to deliver incremental updates.
+ *
+ * @param payload       – same payload as AI_CHATTING
+ * @param onChunk       – called with the accumulated HTML string each time new content arrives
+ * @param onToolStatus  – called with a friendly tool label when an intermediate_step is detected
+ * @returns the final accumulated HTML string
+ */
+
+// Map raw tool names to user-friendly labels
+const TOOL_DISPLAY_NAMES: Record<string, string> = {
+  perplexity_search: 'Perplexity search…',
+  google_search: 'Searching Google…',
+  web_search: 'Perplexity search…',
+  calculator: 'Calculating…',
+  code_interpreter: 'Running code…',
+  image_search: 'Searching images…',
+  wikipedia: 'Searching Wikipedia…',
+};
+
+const getToolDisplayName = (toolName: string): string => {
+  if (!toolName) return 'Processing…';
+  const friendly = TOOL_DISPLAY_NAMES[toolName.toLowerCase()];
+  if (friendly) return friendly;
+  // Fallback: make raw name readable (e.g. "my_custom_tool" → "Using My Custom Tool…")
+  const readable = toolName
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+  return `Using ${readable}…`;
+};
+
+export const AI_CHATTING_STREAM = (
+  payload: any,
+  onChunk: (accumulated: string) => void,
+  onToolStatus?: (status: string) => void,
+): Promise<string> => {
+  const aiToken = getAiToken();
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${BASE_AI_URL}${endPoints.AI_CHAT}`);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/json');
+    if (aiToken) {
+      xhr.setRequestHeader('Authorization', `Bearer ${aiToken}`);
+      xhr.setRequestHeader('AI_SESSION', aiToken);
+    }
+
+    let prevLength = 0; // how much of responseText we already processed
+    let accumulated = ''; // running HTML output
+
+    const tryParse = (str: string) => {
+      try {
+        return JSON.parse(str);
+      } catch {
+        return null;
+      }
+    };
+
+    /**
+     * Process any NEW text that appeared in xhr.responseText since last call.
+     * We split on `}{` to find complete JSON objects and stringify each one.
+     */
+    const processNewData = () => {
+      const fullText = xhr.responseText || '';
+      if (fullText.length <= prevLength) return;
+
+      // Take only the new portion
+      const newText = fullText.substring(prevLength);
+      prevLength = fullText.length;
+
+      // The server sends concatenated JSON objects like `{...}{...}{...}`.
+      // Split them into individual objects.
+      const normalized = newText.replace(/}\s*{/g, '}|||{');
+      const parts = normalized.split('|||');
+
+      for (const part of parts) {
+        const trimmed = part.trim();
+        if (!trimmed) continue;
+
+        const obj = tryParse(trimmed);
+        if (obj) {
+          // If this is an intermediate_step, show the tool name as status
+          if (obj.type === 'intermediate_step' && obj.data?.tool_name) {
+            const friendlyName = getToolDisplayName(obj.data.tool_name);
+            if (onToolStatus) onToolStatus(friendlyName);
+            continue; // don't add intermediate step content to the output
+          }
+
+          const chunk = streamStringify(obj.data ?? obj.output ?? '');
+          if (chunk) {
+            accumulated += chunk;
+            onChunk(accumulated);
+          }
+        }
+      }
+    };
+
+    xhr.onprogress = () => {
+      processNewData();
+    };
+
+    xhr.onload = () => {
+      // Process any remaining data
+      processNewData();
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        // Clean up tool names from final result
+        let final = accumulated
+          .replace(/perplexity_search[^\s<]*/gi, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
+        onChunk(final);
+        resolve(final);
+      } else {
+        reject(new Error(`AI chat request failed with status ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error('AI chat network error'));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error('AI chat request timed out'));
+    };
+
+    xhr.timeout = 120000; // 2 min timeout for long queries
+
+    const bodyStr =
+      typeof payload === 'string' ? payload : JSON.stringify(payload);
+    xhr.send(bodyStr);
+  });
 };
