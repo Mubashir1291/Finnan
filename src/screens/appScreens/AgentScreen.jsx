@@ -1,4 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  memo,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -17,7 +24,10 @@ import {
   Pressable,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { WebView } from 'react-native-webview';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { useNavigation } from '@react-navigation/native';
 import RenderHTML from 'react-native-render-html';
 import {
   BorderColor,
@@ -35,6 +45,7 @@ import {
   CopyIcon,
   StarsIcon,
   ThumbIcon,
+  wwwIcon,
 } from '../../assets/Index';
 import { userSession, AI_CHATTING_STREAM } from '../../services/config';
 import { store } from '../../redux/store';
@@ -150,7 +161,8 @@ const IGNORED_TAGS = ['script', 'style', 'head', 'meta', 'link'];
 
 // ── Memoized message — only re-renders when its own item changes ──
 const ChatMessage = memo(
-  ({ item, contentWidth, onPreviewImage, onFeedback }) => {
+  ({ item, contentWidth, onPreviewImage, onFeedback, onShowSources }) => {
+    const navigation = useNavigation();
     const isUser = item.role === 'user';
 
     let processedText = item.text;
@@ -168,13 +180,32 @@ const ChatMessage = memo(
       images.push(match[1]);
     }
 
-    const textWithoutImages = processedText.replace(/<img[^>]*>/gi, '').trim();
+    const textWithoutImages = processedText
+      .replace(/<img[^>]*>/gi, '')
+      .replace(/<a\b[^>]*>(.*?)<\/a>/gi, '$1')
+      .trim();
     const isHtml =
       typeof textWithoutImages === 'string' &&
       /<[^>]+>/.test(textWithoutImages);
     const hasTable =
       typeof textWithoutImages === 'string' &&
       /<table/i.test(textWithoutImages);
+
+    // Extract sources from the text
+    const sourceLinks = useMemo(() => {
+      if (!item.text || typeof item.text !== 'string') return [];
+      const links = [];
+
+      const regex = /<a[^>]+href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi;
+      let match;
+      while ((match = regex.exec(item.text)) !== null) {
+        links.push({
+          url: match[1],
+          title: match[2].replace(/<[^>]+>/g, '').trim() || match[1],
+        });
+      }
+      return links;
+    }, [item.text]);
 
     const imageGallery =
       images.length > 0 ? (
@@ -261,32 +292,48 @@ const ChatMessage = memo(
           </View>
 
           {/* Copy button for bot messages */}
-          {/* Copy button for bot messages */}
           {!isUser && !item.thinking && item.id !== '1' && (
             <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => {
-                  const plainText = item.text
-                    .replace(/<[^>]*>/g, '')
-                    .replace(/&nbsp;/g, ' ')
-                    .replace(/&amp;/g, '&')
-                    .replace(/&lt;/g, '<')
-                    .replace(/&gt;/g, '>')
-                    .trim();
-                  Clipboard.setString(plainText);
-                }}
+              {/* Source Tag Button */}
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
               >
-                <Image source={CopyIcon} style={styles.copyIcon} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => {
-                  if (onFeedback) onFeedback(item);
-                }}
-              >
-                <Image source={ThumbIcon} style={styles.copyIcon} />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => {
+                    const plainText = item.text
+                      .replace(/<[^>]*>/g, '')
+                      .replace(/&nbsp;/g, ' ')
+                      .replace(/&amp;/g, '&')
+                      .replace(/&lt;/g, '<')
+                      .replace(/&gt;/g, '>')
+                      .trim();
+                    Clipboard.setString(plainText);
+                  }}
+                >
+                  <Image source={CopyIcon} style={styles.copyIcon} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => {
+                    if (onFeedback) onFeedback(item);
+                  }}
+                >
+                  <Image source={ThumbIcon} style={styles.copyIcon} />
+                </TouchableOpacity>
+              </View>
+              {sourceLinks.length > 0 && (
+                <TouchableOpacity
+                  // style={styles.sourceTag}
+                  onPress={() => onShowSources(sourceLinks)}
+                >
+                  {/* <Image source={wwwIcon} style={styles.copyIcon} /> */}
+                  <Text style={styles.sourceTagText}>
+                    Sources ({sourceLinks.length})
+                    {console.log(sourceLinks, 'linkkkkkkkkkkkkkk')}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
@@ -308,6 +355,9 @@ export default function AgentScreen({ navigation, route }) {
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
   const [rating, setRating] = useState(0);
+  const [sourcesModalVisible, setSourcesModalVisible] = useState(false);
+  const [currentSources, setCurrentSources] = useState([]);
+  const [selectedUrl, setSelectedUrl] = useState(null);
   const contentWidth = width - 80;
 
   // Refs for streaming debounce
@@ -506,6 +556,11 @@ export default function AgentScreen({ navigation, route }) {
     setFeedbackModalVisible(true);
   }, []);
 
+  const handleShowSources = useCallback(sources => {
+    setCurrentSources(sources);
+    setSourcesModalVisible(true);
+  }, []);
+
   const renderItem = useCallback(
     ({ item }) => (
       <ChatMessage
@@ -513,9 +568,10 @@ export default function AgentScreen({ navigation, route }) {
         contentWidth={contentWidth}
         onPreviewImage={handlePreviewImage}
         onFeedback={handleFeedback}
+        onShowSources={handleShowSources}
       />
     ),
-    [contentWidth, handlePreviewImage, handleFeedback],
+    [contentWidth, handlePreviewImage, handleFeedback, handleShowSources],
   );
 
   const keyExtractor = useCallback(item => item.id, []);
@@ -637,7 +693,9 @@ export default function AgentScreen({ navigation, route }) {
               style={styles.closeButton}
               onPress={() => setPreviewImage(null)}
             >
-              <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
+              <Text
+                style={{ color: '#fff', fontSize: MS(15), fontWeight: 'bold' }}
+              >
                 ✕
               </Text>
             </TouchableOpacity>
@@ -681,6 +739,60 @@ export default function AgentScreen({ navigation, route }) {
               </TouchableOpacity>
             </Pressable>
           </Pressable>
+        </Modal>
+
+        {/* Sources List Modal */}
+        <Modal
+          visible={sourcesModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setSourcesModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setSourcesModalVisible(false)}
+          >
+            <View style={styles.bottomSheetContainer}>
+              <View style={styles.bottomSheetHandle} />
+              <Text style={styles.bottomSheetTitle}>Sources</Text>
+              <FlatList
+                data={currentSources}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.sourceItem}
+                    onPress={() => setSelectedUrl(item.url)}
+                  >
+                    <Text style={styles.sourceTitle} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                    <Text style={styles.sourceUrl} numberOfLines={1}>
+                      {item.url}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* WebView Modal */}
+        <Modal
+          visible={!!selectedUrl}
+          animationType="slide"
+          onRequestClose={() => setSelectedUrl(null)}
+        >
+          <SafeAreaView style={{ flex: 1, backgroundColor: PrimaryColor }}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => setSelectedUrl(null)}>
+                <Image source={BackArrowIcon} style={styles.iconSmall} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Browser</Text>
+              <View style={{ width: 20 }} />
+            </View>
+            <WebView source={{ uri: selectedUrl }} style={{ flex: 1 }} />
+          </SafeAreaView>
         </Modal>
 
         <Toast />
@@ -796,6 +908,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginLeft: 4,
     gap: 12,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   actionButton: {
     padding: 4,
@@ -845,12 +959,16 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 50,
-    right: 20,
-    padding: 10,
+    top: MS(50),
+    right: MS(20),
     backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
+    borderRadius: MS(20),
+    height: MS(30),
+    width: MS(30),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+
   headerSection: {
     paddingHorizontal: S(4),
     paddingTop: VS(8),
@@ -934,5 +1052,62 @@ const styles = StyleSheet.create({
     color: PrimaryColor,
     fontFamily: 'Helvetica-Bold',
     fontSize: MS(16),
+  },
+  sourceTag: {
+    paddingVertical: VS(4),
+    paddingHorizontal: S(10),
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: MS(6),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    alignSelf: 'flex-end',
+  },
+  sourceTagText: {
+    color: SubHeadingColor,
+    fontSize: MS(13),
+    fontFamily: 'Helvetica-Bold',
+  },
+  bottomSheetContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: '#1A1A1A',
+    borderTopLeftRadius: MS(20),
+    borderTopRightRadius: MS(20),
+    padding: MS(20),
+    paddingBottom: MS(40),
+    maxHeight: '80%',
+  },
+  bottomSheetHandle: {
+    width: S(40),
+    height: VS(4),
+    backgroundColor: '#555',
+    borderRadius: MS(2),
+    alignSelf: 'center',
+    marginBottom: VS(15),
+  },
+  bottomSheetTitle: {
+    fontSize: MS(18),
+    fontFamily: 'Helvetica-Bold',
+    color: '#fff',
+    marginBottom: VS(15),
+    textAlign: 'center',
+  },
+  sourceItem: {
+    paddingVertical: VS(12),
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  sourceTitle: {
+    color: '#fff',
+    fontSize: MS(14),
+    fontFamily: 'Helvetica-Bold',
+    marginBottom: VS(4),
+  },
+  sourceUrl: {
+    color: SecondaryColor,
+    fontSize: MS(12),
+    fontFamily: 'Helvetica',
+    textDecorationLine: 'underline',
   },
 });
