@@ -41,6 +41,7 @@ import {
 
 import {
   ai,
+  ArrowBackIcon,
   BackArrowIcon,
   CopyIcon,
   StarsIcon,
@@ -324,13 +325,21 @@ const ChatMessage = memo(
               </View>
               {sourceLinks.length > 0 && (
                 <TouchableOpacity
-                  // style={styles.sourceTag}
+                  style={styles.sourceTag}
                   onPress={() => onShowSources(sourceLinks)}
                 >
-                  {/* <Image source={wwwIcon} style={styles.copyIcon} /> */}
+                  <Image
+                    source={wwwIcon}
+                    style={{
+                      width: S(14),
+                      height: VS(14),
+                      resizeMode: 'contain',
+                      tintColor: SubHeadingColor,
+                    }}
+                  />
                   <Text style={styles.sourceTagText}>
-                    Sources ({sourceLinks.length})
-                    {console.log(sourceLinks, 'linkkkkkkkkkkkkkk')}
+                    Sources
+                    {/* {console.log(sourceLinks)} */}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -755,7 +764,7 @@ export default function AgentScreen({ navigation, route }) {
           >
             <View style={styles.bottomSheetContainer}>
               <View style={styles.bottomSheetHandle} />
-              <Text style={styles.bottomSheetTitle}>Sources</Text>
+              {/* <Text style={styles.bottomSheetTitle}>Sources</Text> */}
               <FlatList
                 data={currentSources}
                 keyExtractor={(item, index) => index.toString()}
@@ -786,9 +795,9 @@ export default function AgentScreen({ navigation, route }) {
           <SafeAreaView style={{ flex: 1, backgroundColor: PrimaryColor }}>
             <View style={styles.header}>
               <TouchableOpacity onPress={() => setSelectedUrl(null)}>
-                <Image source={BackArrowIcon} style={styles.iconSmall} />
+                <Image source={ArrowBackIcon} style={styles.iconSmall} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Browser</Text>
+              {/* <Text style={styles.headerTitle}>Browser</Text> */}
               <View style={{ width: 20 }} />
             </View>
             <WebView source={{ uri: selectedUrl }} style={{ flex: 1 }} />
@@ -910,6 +919,7 @@ const styles = StyleSheet.create({
     gap: 12,
     justifyContent: 'space-between',
     alignItems: 'center',
+    // backgroundColor: 'rgba(255,255,255,0.05)',
   },
   actionButton: {
     padding: 4,
@@ -994,7 +1004,7 @@ const styles = StyleSheet.create({
   titleIcon: {
     width: S(24),
     height: VS(24),
-    tintColor: SecondaryColor,
+    tintColor: HeadingColor,
     resizeMode: 'contain',
   },
   subtitle: {
@@ -1054,13 +1064,11 @@ const styles = StyleSheet.create({
     fontSize: MS(16),
   },
   sourceTag: {
-    paddingVertical: VS(4),
-    paddingHorizontal: S(10),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: MS(6),
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
     alignSelf: 'flex-end',
+    flexDirection: 'row',
+    gap: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sourceTagText: {
     color: SubHeadingColor,
@@ -1076,7 +1084,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: MS(20),
     padding: MS(20),
     paddingBottom: MS(40),
-    maxHeight: '80%',
+    maxHeight: '60%',
   },
   bottomSheetHandle: {
     width: S(40),
@@ -1105,7 +1113,7 @@ const styles = StyleSheet.create({
     marginBottom: VS(4),
   },
   sourceUrl: {
-    color: SecondaryColor,
+    color: SubHeadingColor,
     fontSize: MS(12),
     fontFamily: 'Helvetica',
     textDecorationLine: 'underline',
