@@ -8,6 +8,8 @@ import {
   StatusBar,
   Dimensions,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  Pressable,
 } from 'react-native';
 import Video from 'react-native-video';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -23,20 +25,34 @@ const VideoPlayerScreen = () => {
   const route = useRoute();
   const { item } = route.params;
   const [loading, setLoading] = useState(false);
+  const [paused, setPaused] = useState(false);
+
+  const handleTogglePause = () => {
+    setPaused(prev => !prev);
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar hidden />
 
-      <Video
-        source={{ uri: item?.video || item?.video_url }}
-        style={styles.video}
-        resizeMode="cover"
-        repeat
-        onLoadStart={() => setLoading(true)}
-        onLoad={() => setLoading(false)}
-        controls={false}
-      />
+      <View style={{ flex: 1 }}>
+        <View style={{ width, height }}>
+          <Video
+            source={{ uri: item?.video || item?.video_url }}
+            style={styles.video}
+            resizeMode="cover"
+            repeat
+            paused={paused}
+            onLoadStart={() => setLoading(true)}
+            onLoad={() => setLoading(false)}
+            controls={false}
+          />
+          <Pressable
+            onPress={handleTogglePause}
+            style={styles.touchableOverlay}
+          />
+        </View>
+      </View>
 
       {loading && (
         <View style={styles.loader}>
@@ -66,12 +82,12 @@ const VideoPlayerScreen = () => {
           <Image source={{ uri: item?.image }} style={styles.playerImage} />
         </View>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.viewDetailButton}
           onPress={() => navigation.navigate('Detail', { item })}
         >
           <Text style={styles.viewDetailText}>View Detail</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
@@ -161,5 +177,9 @@ const styles = StyleSheet.create({
     color: PrimaryColor,
     fontSize: MS(16),
     fontFamily: 'Helvetica-Bold',
+  },
+  touchableOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
   },
 });

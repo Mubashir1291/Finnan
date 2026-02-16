@@ -50,11 +50,11 @@ const DrawerContent = ({ navigation }) => {
           }
         />
 
-        <Item
+        {/* <Item
           icon={UserIcon}
           label="Players"
           onPress={() => navigation.navigate('Players')}
-        />
+        /> */}
       </View>
 
       {/* <View style={styles.bottom}>

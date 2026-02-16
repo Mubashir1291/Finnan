@@ -660,7 +660,7 @@ export default function AgentScreen({ navigation, route }) {
                 <Rating
                   type="star"
                   ratingCount={5}
-                  imageSize={45}
+                  imageSize={40}
                   tintColor={InputBgColor}
                   onFinishRating={setRating}
                   startingValue={0}
