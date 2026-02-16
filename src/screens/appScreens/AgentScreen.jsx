@@ -57,7 +57,7 @@ const initialMessages = [
   {
     id: '1',
     role: 'bot',
-    text: "Hi! I'm Finnan , your football agent. Ready to explore transfers and stats?",
+    text: 'Hi! I’m Finnan — your autonomous football finance advisor. Want to model your contract, taxes, and investments?',
   },
 ];
 
@@ -758,7 +758,7 @@ export default function AgentScreen({ navigation, route }) {
           onRequestClose={() => setSourcesModalVisible(false)}
         >
           <TouchableOpacity
-            style={styles.modalOverlay}
+            style={styles.sourcesModal}
             activeOpacity={1}
             onPress={() => setSourcesModalVisible(false)}
           >
@@ -766,6 +766,7 @@ export default function AgentScreen({ navigation, route }) {
               <View style={styles.bottomSheetHandle} />
               {/* <Text style={styles.bottomSheetTitle}>Sources</Text> */}
               <FlatList
+                showsVerticalScrollIndicator={false}
                 data={currentSources}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
@@ -964,6 +965,12 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sourcesModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
