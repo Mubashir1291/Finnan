@@ -5,6 +5,7 @@ import React, {
   useCallback,
   memo,
   useMemo,
+  use,
 } from 'react';
 import {
   View,
@@ -194,15 +195,78 @@ const ChatMessage = memo(
 
     // Extract sources from the text
     const sourceLinks = useMemo(() => {
+      console.log(item, 'aaaaaaaaaassssssssssssssaaa');
       if (!item.text || typeof item.text !== 'string') return [];
       const links = [];
+      const foundUrls = new Set();
+      const imageUrls = [];
 
-      const regex = /<a[^>]+href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi;
-      let match;
-      while ((match = regex.exec(item.text)) !== null) {
+      const addLink = (url, title) => {
+        let cleanUrl = url.trim();
+        cleanUrl = cleanUrl.replace(/[.,;)]$/, '');
+
+        // Filter out image URLs so they don't appear in the sources list
+        if (/\.(jpg|jpeg|png|gif|webp|svg|bmp)(?:\?.*)?$/i.test(cleanUrl)) {
+          imageUrls.push(cleanUrl);
+          return;
+        }
+
+        if (!cleanUrl || foundUrls.has(cleanUrl)) return;
+        foundUrls.add(cleanUrl);
         links.push({
-          url: match[1],
-          title: match[2].replace(/<[^>]+>/g, '').trim() || match[1],
+          url: cleanUrl,
+          title:
+            title && title !== cleanUrl
+              ? title.replace(/<[^>]+>/g, '').trim()
+              : cleanUrl,
+        });
+      };
+
+      // 1. HTML Anchor tags
+      const htmlRegex =
+        /<a\b[^>]*\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^>\s]+))[^>]*>([\s\S]*?)<\/a>/gi;
+      let match;
+      while ((match = htmlRegex.exec(item.text)) !== null) {
+        const url = match[1] || match[2] || match[3];
+        const content = match[4];
+        if (url) addLink(url, content);
+      }
+
+      // 2. Markdown Links
+      const markdownRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      while ((match = markdownRegex.exec(item.text)) !== null) {
+        addLink(match[2], match[1]);
+      }
+
+      // 3. Plain URLs (fallback)
+      const urlRegex = /((?:https?:\/\/|www\.)[^\s<"'\)\]]+)/g;
+      while ((match = urlRegex.exec(item.text)) !== null) {
+        let url = match[1];
+        if (url.startsWith('www.')) url = 'https://' + url;
+        addLink(url, url);
+      }
+
+      // 4. Fallback: If no text sources found, but images exist, use image domains
+      if (links.length === 0 && imageUrls.length > 0) {
+        imageUrls.forEach(imgUrl => {
+          try {
+            const originMatch = imgUrl.match(
+              /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/im,
+            );
+            if (originMatch) {
+              const domain = originMatch[0];
+              const fullOrigin = domain.startsWith('http')
+                ? domain
+                : `https://${domain}`;
+              if (!foundUrls.has(fullOrigin)) {
+                foundUrls.add(fullOrigin);
+                links.push({
+                  url: fullOrigin,
+                  title: 'Image Source',
+                });
+              }
+            }
+          } catch (e) {}
         });
       }
       return links;
@@ -338,8 +402,7 @@ const ChatMessage = memo(
                     }}
                   />
                   <Text style={styles.sourceTagText}>
-                    Sources
-                    {/* {console.log(sourceLinks)} */}
+                    Sources ({sourceLinks.length})
                   </Text>
                 </TouchableOpacity>
               )}
@@ -767,6 +830,7 @@ export default function AgentScreen({ navigation, route }) {
               {/* <Text style={styles.bottomSheetTitle}>Sources</Text> */}
               <FlatList
                 data={currentSources}
+                showsVerticalScrollIndicator={false}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
@@ -963,7 +1027,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
