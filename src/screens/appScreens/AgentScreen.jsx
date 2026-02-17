@@ -195,7 +195,7 @@ const ChatMessage = memo(
 
     // Extract sources from the text
     const sourceLinks = useMemo(() => {
-      console.log(item, 'aaaaaaaaaassssssssssssssaaa');
+
       if (!item.text || typeof item.text !== 'string') return [];
       const links = [];
       const foundUrls = new Set();
@@ -266,7 +266,7 @@ const ChatMessage = memo(
                 });
               }
             }
-          } catch (e) {}
+          } catch (e) { }
         });
       }
       return links;
@@ -337,21 +337,21 @@ const ChatMessage = memo(
                 {imageGallery}
                 {isUser
                   ? textWithoutImages && (
-                      <Text
-                        style={[styles.messageText, styles.messageTextUser]}
-                      >
-                        {textWithoutImages}
-                      </Text>
-                    )
+                    <Text
+                      style={[styles.messageText, styles.messageTextUser]}
+                    >
+                      {textWithoutImages}
+                    </Text>
+                  )
                   : textWithoutImages && (
-                      <ScrollView
-                        horizontal={hasTable}
-                        showsHorizontalScrollIndicator={hasTable}
-                        nestedScrollEnabled={true}
-                      >
-                        {htmlContent}
-                      </ScrollView>
-                    )}
+                    <ScrollView
+                      horizontal={hasTable}
+                      showsHorizontalScrollIndicator={hasTable}
+                      nestedScrollEnabled={true}
+                    >
+                      {htmlContent}
+                    </ScrollView>
+                  )}
               </>
             )}
           </View>
@@ -554,10 +554,10 @@ export default function AgentScreen({ navigation, route }) {
             prev.map(m =>
               m.id === thinkingId
                 ? {
-                    ...m,
-                    text: cleanedText || 'No response received.',
-                    thinking: false,
-                  }
+                  ...m,
+                  text: cleanedText || 'No response received.',
+                  thinking: false,
+                }
                 : m,
             ),
           );
@@ -571,10 +571,10 @@ export default function AgentScreen({ navigation, route }) {
             prev.map(m =>
               m.id === thinkingId
                 ? {
-                    ...m,
-                    text: err?.message || 'Sorry, something went wrong.',
-                    thinking: false,
-                  }
+                  ...m,
+                  text: err?.message || 'Sorry, something went wrong.',
+                  thinking: false,
+                }
                 : m,
             ),
           );
@@ -667,8 +667,8 @@ export default function AgentScreen({ navigation, route }) {
     <View style={{ flex: 1, backgroundColor: PrimaryColor }}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        behavior={'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 30}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -691,6 +691,7 @@ export default function AgentScreen({ navigation, route }) {
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           removeClippedSubviews={true}
           maxToRenderPerBatch={5}
           windowSize={7}
@@ -831,7 +832,6 @@ export default function AgentScreen({ navigation, route }) {
               <FlatList
                 showsVerticalScrollIndicator={false}
                 data={currentSources}
-                showsVerticalScrollIndicator={false}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
