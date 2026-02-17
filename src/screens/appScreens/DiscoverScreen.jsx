@@ -143,7 +143,10 @@ const DiscoverScreen = () => {
         numColumns={2}
         showsVerticalScrollIndicator={false}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
-        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 30 }}
+        contentContainerStyle={{
+          paddingHorizontal: S(12),
+          paddingBottom: VS(30),
+        }}
       />
     </SafeAreaView>
   );

@@ -44,10 +44,15 @@ const ExploreScreen = () => {
     }
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('VideoPlayerScreen', { item })}
+      onPress={() =>
+        navigation.navigate('VideoPlayerScreen', {
+          videos: feedData,
+          startIndex: index,
+        })
+      }
     >
       <ImageBackground source={{ uri: item?.image }} style={styles.image}>
         {/* Tag */}

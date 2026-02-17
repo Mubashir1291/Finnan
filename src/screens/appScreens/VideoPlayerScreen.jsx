@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,23 +8,20 @@ import {
   StatusBar,
   Dimensions,
   ActivityIndicator,
-  TouchableWithoutFeedback,
   Pressable,
+  FlatList,
 } from 'react-native';
 import Video from 'react-native-video';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowBackIcon, BackArrowIcon } from '../../assets/Index';
+import { ArrowBackIcon } from '../../assets/Index';
 import { MS, S, VS } from '../../utils/Responsive';
-import { PrimaryColor, SecondaryColor } from '../../utils/Colors';
+import { SecondaryColor } from '../../utils/Colors';
 
 const { width, height } = Dimensions.get('window');
 
-const VideoPlayerScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { item } = route.params;
-  const [loading, setLoading] = useState(false);
+const VideoItem = ({ item, isActive }) => {
+  const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
 
   const handleTogglePause = () => {
@@ -32,43 +29,25 @@ const VideoPlayerScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar hidden />
-
-      <View style={{ flex: 1 }}>
-        <View style={{ width, height }}>
-          <Video
-            source={{ uri: item?.video || item?.video_url }}
-            style={styles.video}
-            resizeMode="cover"
-            repeat
-            paused={paused}
-            onLoadStart={() => setLoading(true)}
-            onLoad={() => setLoading(false)}
-            controls={false}
-          />
-          <Pressable
-            onPress={handleTogglePause}
-            style={styles.touchableOverlay}
-          />
-        </View>
-      </View>
+    <View style={styles.videoContainer}>
+      <Pressable onPress={handleTogglePause} style={styles.touchableOverlay}>
+        <Video
+          source={{ uri: item?.video || item?.video_url }}
+          style={styles.video}
+          resizeMode="cover"
+          repeat
+          paused={!isActive || paused}
+          onLoadStart={() => setLoading(true)}
+          onLoad={() => setLoading(false)}
+          controls={false}
+        />
+      </Pressable>
 
       {loading && (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color={SecondaryColor} />
         </View>
       )}
-
-      {/* Back Button */}
-      <SafeAreaView style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Image source={ArrowBackIcon} style={styles.backIcon} />
-        </TouchableOpacity>
-      </SafeAreaView>
 
       {/* Bottom Detail View */}
       <View style={styles.bottomView}>
@@ -81,14 +60,81 @@ const VideoPlayerScreen = () => {
           {/* Player Image / Thumbnail */}
           <Image source={{ uri: item?.image }} style={styles.playerImage} />
         </View>
-
-        {/* <TouchableOpacity
-          style={styles.viewDetailButton}
-          onPress={() => navigation.navigate('Detail', { item })}
-        >
-          <Text style={styles.viewDetailText}>View Detail</Text>
-        </TouchableOpacity> */}
       </View>
+    </View>
+  );
+};
+
+const VideoPlayerScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { videos, startIndex = 0 } = route.params;
+  const [activeVideoIndex, setActiveVideoIndex] = useState(startIndex);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const newIndex = viewableItems[0].index;
+      if (newIndex !== null && newIndex !== activeVideoIndex) {
+        setActiveVideoIndex(newIndex);
+      }
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
+
+  const renderItem = useCallback(
+    ({ item, index }) => {
+      return <VideoItem item={item} isActive={index === activeVideoIndex} />;
+    },
+    [activeVideoIndex],
+  );
+
+  const keyExtractor = useCallback(
+    (item, index) => item?.id?.toString() || index.toString(),
+    [],
+  );
+
+  const getItemLayout = useCallback(
+    (data, index) => ({
+      length: height,
+      offset: height * index,
+      index,
+    }),
+    [],
+  );
+
+  return (
+    <View style={styles.container}>
+      <StatusBar hidden />
+
+      <FlatList
+        data={videos}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        initialScrollIndex={startIndex}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        getItemLayout={getItemLayout}
+        style={{ flex: 1 }}
+        windowSize={3}
+        maxToRenderPerBatch={1}
+        initialNumToRender={1}
+        removeClippedSubviews
+      />
+
+      {/* Back Button */}
+      <SafeAreaView style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Image source={ArrowBackIcon} style={styles.backIcon} />
+        </TouchableOpacity>
+      </SafeAreaView>
     </View>
   );
 };
@@ -100,14 +146,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
+  videoContainer: {
+    width,
+    height,
+    backgroundColor: '#000',
+  },
   video: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-    width: width,
-    height: height,
+    ...StyleSheet.absoluteFillObject,
   },
   loader: {
     ...StyleSheet.absoluteFillObject,
@@ -139,16 +184,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: MS(20),
-    paddingBottom: VS(40),
+    paddingBottom: VS(20),
     backgroundColor: 'rgba(0,0,0,0.6)',
     borderTopLeftRadius: MS(20),
     borderTopRightRadius: MS(20),
+    zIndex: 2,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: VS(16),
   },
   textWrapper: {
     flex: 1,
@@ -166,20 +211,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fff',
   },
-  viewDetailButton: {
-    backgroundColor: SecondaryColor,
-    paddingVertical: VS(14),
-    borderRadius: MS(30),
-    alignItems: 'center',
-    marginBottom: VS(16),
-  },
-  viewDetailText: {
-    color: PrimaryColor,
-    fontSize: MS(16),
-    fontFamily: 'Helvetica-Bold',
-  },
   touchableOverlay: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 0,
+    zIndex: 1,
   },
 });

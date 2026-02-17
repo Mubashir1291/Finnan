@@ -58,7 +58,7 @@ const initialMessages = [
   {
     id: '1',
     role: 'bot',
-    text: "Hi! I'm Finnan , your football agent. Ready to explore transfers and stats?",
+    text: 'Hi! I’m Finnan — your autonomous football finance advisor. Want to model your contract, taxes, and investments?',
   },
 ];
 
@@ -166,8 +166,27 @@ const ChatMessage = memo(
   ({ item, contentWidth, onPreviewImage, onFeedback, onShowSources }) => {
     const navigation = useNavigation();
     const isUser = item.role === 'user';
+    let textForDisplay = item.text;
 
-    let processedText = item.text;
+    // If the bot response is a tool result, we can't render the JSON.
+    // So, we create a generic text and will extract sources from the original `item.text`.
+    if (item.role === 'bot' && !item.thinking && item.text) {
+      try {
+        const parsed = JSON.parse(item.text);
+        if (
+          parsed.type === 'tool_result' &&
+          parsed.data &&
+          Array.isArray(parsed.data.search_results)
+        ) {
+          textForDisplay =
+            "I've found some information for you. Check the sources for details.";
+        }
+      } catch (e) {
+        // Not a JSON, use original text.
+      }
+    }
+
+    let processedText = textForDisplay;
     if (typeof processedText === 'string') {
       processedText = processedText
         .replace(/\\n\\n/g, '<br/><br/>')
@@ -195,8 +214,29 @@ const ChatMessage = memo(
 
     // Extract sources from the text
     const sourceLinks = useMemo(() => {
-      console.log(item, 'aaaaaaaaaassssssssssssssaaa');
+      console.log(item, 'here is source response');
       if (!item.text || typeof item.text !== 'string') return [];
+
+      // NEW: Handle tool_result JSON response for sources
+      try {
+        const parsed = JSON.parse(item.text);
+        if (
+          parsed.type === 'tool_result' &&
+          parsed.data &&
+          Array.isArray(parsed.data.search_results)
+        ) {
+          const sources = parsed.data.search_results.map(result => ({
+            url: (result.url || '').replace(/"\s*$/, ''), // Clean trailing quote from example
+            title: result.title || 'No Title',
+            description: result.snippet || 'No Description',
+          }));
+          if (sources.length > 0) {
+            return sources;
+          }
+        }
+      } catch (e) {
+        // Not a JSON, fall through to regex-based extraction
+      }
       const links = [];
       const foundUrls = new Set();
       const imageUrls = [];
@@ -219,6 +259,7 @@ const ChatMessage = memo(
             title && title !== cleanUrl
               ? title.replace(/<[^>]+>/g, '').trim()
               : cleanUrl,
+          description: 'Source from chat response',
         });
       };
 
@@ -667,8 +708,8 @@ export default function AgentScreen({ navigation, route }) {
     <View style={{ flex: 1, backgroundColor: PrimaryColor }}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        behavior={'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 30}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -691,6 +732,7 @@ export default function AgentScreen({ navigation, route }) {
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           removeClippedSubviews={true}
           maxToRenderPerBatch={5}
           windowSize={7}
@@ -821,7 +863,7 @@ export default function AgentScreen({ navigation, route }) {
           onRequestClose={() => setSourcesModalVisible(false)}
         >
           <TouchableOpacity
-            style={styles.modalOverlay}
+            style={styles.sourcesModal}
             activeOpacity={1}
             onPress={() => setSourcesModalVisible(false)}
           >
@@ -829,8 +871,8 @@ export default function AgentScreen({ navigation, route }) {
               <View style={styles.bottomSheetHandle} />
               {/* <Text style={styles.bottomSheetTitle}>Sources</Text> */}
               <FlatList
-                data={currentSources}
                 showsVerticalScrollIndicator={false}
+                data={currentSources}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
@@ -838,10 +880,13 @@ export default function AgentScreen({ navigation, route }) {
                     onPress={() => setSelectedUrl(item.url)}
                   >
                     <Text style={styles.sourceTitle} numberOfLines={2}>
-                      {item.title}
+                      {item?.title}
+                    </Text>
+                    <Text style={styles.sourceDescription} numberOfLines={3}>
+                      {item?.snippet}
                     </Text>
                     <Text style={styles.sourceUrl} numberOfLines={1}>
-                      {item.url}
+                      {item?.url}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -1031,6 +1076,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  sourcesModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   closeButton: {
     position: 'absolute',
     top: MS(50),
@@ -1175,6 +1226,12 @@ const styles = StyleSheet.create({
     fontSize: MS(14),
     fontFamily: 'Helvetica-Bold',
     marginBottom: VS(4),
+  },
+  sourceDescription: {
+    color: SubHeadingColor,
+    fontSize: MS(12),
+    fontFamily: 'Helvetica',
+    marginBottom: VS(6),
   },
   sourceUrl: {
     color: SubHeadingColor,
