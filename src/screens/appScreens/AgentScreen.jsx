@@ -59,6 +59,7 @@ const initialMessages = [
     id: '1',
     role: 'bot',
     text: 'Hi! I’m Finnan — your autonomous football finance advisor. Want to model your contract, taxes, and investments?',
+    text: 'Hi! I’m Finnan — your autonomous football finance advisor. Want to model your contract, taxes, and investments?',
   },
 ];
 
@@ -710,6 +711,8 @@ export default function AgentScreen({ navigation, route }) {
         style={styles.container}
         behavior={'padding'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 30}
+        behavior={'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 30}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -732,6 +735,7 @@ export default function AgentScreen({ navigation, route }) {
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           keyboardShouldPersistTaps="handled"
           removeClippedSubviews={true}
           maxToRenderPerBatch={5}
@@ -864,6 +868,7 @@ export default function AgentScreen({ navigation, route }) {
         >
           <TouchableOpacity
             style={styles.sourcesModal}
+            style={styles.sourcesModal}
             activeOpacity={1}
             onPress={() => setSourcesModalVisible(false)}
           >
@@ -872,6 +877,7 @@ export default function AgentScreen({ navigation, route }) {
               {/* <Text style={styles.bottomSheetTitle}>Sources</Text> */}
               <FlatList
                 showsVerticalScrollIndicator={false}
+                data={currentSources}
                 data={currentSources}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
@@ -1073,6 +1079,12 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sourcesModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
