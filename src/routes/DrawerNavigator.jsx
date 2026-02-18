@@ -1,6 +1,7 @@
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useSelector } from 'react-redux';
 import BottomTabs from '../components/tabs/BottomTabs';
 import PlayersScreen from '../screens/appScreens/PlayersScreen';
 import AuthStack from './AuthStack';
@@ -9,11 +10,15 @@ import {
   DiscoverIcon,
   StarsIcon,
   UserIcon,
+  HomeIcon,
 } from '../assets/Index';
+import { MS, S, VS } from '../utils/Responsive';
 
 const Drawer = createDrawerNavigator();
 
 const DrawerContent = ({ navigation }) => {
+  const { isLogin } = useSelector(state => state.user);
+
   const Item = ({ icon, label, onPress }) => (
     <TouchableOpacity style={styles.item} onPress={onPress}>
       <Image source={icon} style={styles.itemIcon} />
@@ -28,6 +33,11 @@ const DrawerContent = ({ navigation }) => {
       </View>
 
       <View style={styles.itemsWrap}>
+        <Item
+          icon={HomeIcon}
+          label="Home"
+          onPress={() => navigation.navigate('Home', { screen: 'HomeScreen' })}
+        />
         <Item
           icon={StarsIcon}
           label="Finnan"
@@ -49,24 +59,18 @@ const DrawerContent = ({ navigation }) => {
             navigation.navigate('Home', { screen: 'DiscoverScreen' })
           }
         />
-
-        {/* <Item
-          icon={UserIcon}
-          label="Players"
-          onPress={() => navigation.navigate('Players')}
-        /> */}
       </View>
 
-      {/* <View style={styles.bottom}>
-        <TouchableOpacity
-          style={styles.loginBtn}
-          onPress={() =>
-            navigation.navigate('Auth', { screen: 'SignInScreen' })
-          }
-        >
-          <Text style={styles.loginText}>Login / Signup</Text>
-        </TouchableOpacity>
-      </View> */}
+      {!isLogin && (
+        <View style={styles.bottom}>
+          <TouchableOpacity
+            style={styles.loginBtn}
+            onPress={() => navigation.navigate('Auth')}
+          >
+            <Text style={styles.loginText}>Sign In / Sign Up</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -95,28 +99,32 @@ export default DrawerNavigator;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  header: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#222' },
-  title: { color: '#fff', fontSize: 26, fontWeight: '900' },
-  itemsWrap: { paddingHorizontal: 8, paddingTop: 20 },
+  header: {
+    padding: MS(20),
+    borderBottomWidth: MS(1),
+    borderBottomColor: '#222',
+  },
+  title: { color: '#fff', fontSize: MS(26), fontWeight: '900' },
+  itemsWrap: { paddingHorizontal: S(8), paddingTop: VS(10) },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 10,
+    paddingVertical: VS(8),
+    paddingHorizontal: S(10),
   },
   itemIcon: {
-    width: 26,
-    height: 26,
+    width: S(20),
+    height: VS(20),
     tintColor: '#fff',
     resizeMode: 'contain',
-    marginRight: 14,
+    marginRight: S(14),
   },
   itemLabel: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  bottom: { padding: 16, marginTop: 'auto' },
+  bottom: { padding: MS(16), marginTop: 'auto' },
   loginBtn: {
     backgroundColor: '#fff',
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: VS(12),
+    borderRadius: MS(10),
     alignItems: 'center',
   },
   loginText: { color: '#000', fontWeight: '700' },

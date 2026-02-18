@@ -7,7 +7,8 @@ import { useSelector } from 'react-redux';
 
 const Routes = () => {
   const [showSplash, setShowSplash] = useState(true);
-const {isLogin} = useSelector((state) => state.user);
+  const { isLogin } = useSelector(state => state.user);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
@@ -16,7 +17,8 @@ const {isLogin} = useSelector((state) => state.user);
     return () => clearTimeout(timer);
   }, []);
 
-  return showSplash ? <SplashScreen /> : isLogin ? <AppStack /> : <AuthStack />;
+  // return showSplash ? <SplashScreen /> : isLogin ? <AppStack /> : <AuthStack />;
+  return showSplash ? <SplashScreen /> : <AppStack />;
 };
 
 export default Routes;

@@ -33,7 +33,7 @@ import { AI_LOGIN } from '../../services/AppServices';
 const SignInSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
   password: Yup.string()
-    .min(8, 'Atleast 8 Character')
+    // .min(8, 'Atleast 8 Character')
     .required('Password is required'),
 });
 

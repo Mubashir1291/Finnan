@@ -711,8 +711,6 @@ export default function AgentScreen({ navigation, route }) {
         style={styles.container}
         behavior={'padding'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 30}
-        behavior={'padding'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 30}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -735,7 +733,6 @@ export default function AgentScreen({ navigation, route }) {
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
           keyboardShouldPersistTaps="handled"
           removeClippedSubviews={true}
           maxToRenderPerBatch={5}
@@ -868,7 +865,6 @@ export default function AgentScreen({ navigation, route }) {
         >
           <TouchableOpacity
             style={styles.sourcesModal}
-            style={styles.sourcesModal}
             activeOpacity={1}
             onPress={() => setSourcesModalVisible(false)}
           >
@@ -878,23 +874,25 @@ export default function AgentScreen({ navigation, route }) {
               <FlatList
                 showsVerticalScrollIndicator={false}
                 data={currentSources}
-                data={currentSources}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.sourceItem}
-                    onPress={() => setSelectedUrl(item.url)}
-                  >
-                    <Text style={styles.sourceTitle} numberOfLines={2}>
-                      {item?.title}
-                    </Text>
-                    <Text style={styles.sourceDescription} numberOfLines={3}>
-                      {item?.snippet}
-                    </Text>
-                    <Text style={styles.sourceUrl} numberOfLines={1}>
-                      {item?.url}
-                    </Text>
-                  </TouchableOpacity>
+                  console.log(item, 'itemmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm'),
+                  (
+                    <TouchableOpacity
+                      style={styles.sourceItem}
+                      onPress={() => setSelectedUrl(item.url)}
+                    >
+                      <Text style={styles.sourceTitle} numberOfLines={2}>
+                        {item?.title}
+                      </Text>
+                      <Text style={styles.sourceDescription} numberOfLines={3}>
+                        {item?.snippet}
+                      </Text>
+                      <Text style={styles.sourceUrl} numberOfLines={1}>
+                        {item?.url}
+                      </Text>
+                    </TouchableOpacity>
+                  )
                 )}
               />
             </View>
@@ -931,53 +929,53 @@ const styles = StyleSheet.create({
     backgroundColor: PrimaryColor,
   },
   header: {
-    height: 60,
+    height: VS(60),
     backgroundColor: PrimaryColor,
-    paddingHorizontal: 16,
+    paddingHorizontal: S(16),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: MS(18),
     fontFamily: 'Helvetica-Bold',
     marginTop: VS(5),
   },
   iconSmall: {
-    width: 20,
-    height: 20,
+    width: S(20),
+    height: VS(20),
     resizeMode: 'contain',
     tintColor: '#fff',
   },
   newConversationButton: {
     alignSelf: 'flex-start',
-    borderWidth: 1,
+    borderWidth: MS(1),
     borderColor: BorderColor,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginBottom: 10,
+    borderRadius: MS(20),
+    paddingHorizontal: S(16),
+    paddingVertical: VS(10),
+    marginBottom: VS(10),
   },
   newConversationText: {
     color: HeadingColor,
-    fontSize: 14,
+    fontSize: MS(14),
     fontFamily: 'Helvetica',
   },
   listContent: {
-    padding: 16,
-    paddingBottom: 20,
+    padding: MS(16),
+    paddingBottom: VS(20),
   },
   askJoseAi: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: S(16),
+    paddingVertical: VS(12),
     gap: 10,
   },
   messageRow: {
     flexDirection: 'row',
-    marginVertical: 8,
+    marginVertical: VS(8),
     alignItems: 'flex-start',
   },
   messageRowRight: {
@@ -988,9 +986,9 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   bubble: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 16,
+    paddingHorizontal: S(14),
+    paddingVertical: VS(12),
+    borderRadius: MS(16),
   },
   bubbleBot: {
     backgroundColor: ButtonsColor,
@@ -1002,9 +1000,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   messageText: {
-    fontSize: 14,
+    fontSize: MS(14),
     color: HeadingColor,
-    lineHeight: 20,
+    lineHeight: VS(20),
     fontFamily: 'Helvetica',
   },
   messageTextUser: {
@@ -1017,64 +1015,67 @@ const styles = StyleSheet.create({
   },
   thinkingText: {
     color: SubHeadingColor,
-    fontSize: 14,
+    fontSize: MS(14),
     fontFamily: 'Helvetica',
   },
   galleryImage: {
-    width: 180,
-    height: 140,
-    borderRadius: 12,
+    width: S(180),
+    height: VS(140),
+    borderRadius: MS(12),
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
   actionButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    marginLeft: 4,
+    marginTop: VS(8),
+    marginLeft: S(4),
     gap: 12,
     justifyContent: 'space-between',
     alignItems: 'center',
     // backgroundColor: 'rgba(255,255,255,0.05)',
   },
   actionButton: {
-    padding: 4,
+    padding: MS(4),
   },
   copyIcon: {
-    width: 18,
-    height: 18,
+    width: S(18),
+    height: VS(18),
     resizeMode: 'contain',
     tintColor: SubHeadingColor,
   },
   inputRow: {
     flexDirection: 'row',
-    padding: 10,
+    padding: MS(10),
     borderTopWidth: 1,
-    borderTopColor: ButtonsColor,
     alignItems: 'center',
   },
   input: {
     color: HeadingColor,
     fontFamily: 'Helvetica',
     flex: 1,
-    minHeight: 40,
-    maxHeight: 120,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    minHeight: VS(40),
+    maxHeight: VS(120),
+    paddingHorizontal: S(12),
+    paddingVertical: VS(8),
     backgroundColor: BorderColor,
-    borderRadius: 24,
+    borderRadius: MS(24),
+    borderColor: SubHeadingColor,
+    borderWidth: MS(1),
   },
   sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: SecondaryColor,
+    width: MS(44),
+    height: MS(44),
+    borderRadius: MS(22),
+    backgroundColor: PrimaryColor,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 10,
+    marginLeft: S(10),
+    borderColor: SubHeadingColor,
+    borderWidth: MS(1),
   },
   sendIcon: {
-    fontSize: 20,
-    color: PrimaryColor,
+    fontSize: MS(17),
+    color: '#fff',
   },
   modalOverlay: {
     flex: 1,

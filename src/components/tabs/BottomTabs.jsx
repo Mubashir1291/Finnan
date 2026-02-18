@@ -6,6 +6,7 @@ import ExploreScreen from '../../screens/appScreens/ExploreScreen';
 import DiscoverScreen from '../../screens/appScreens/DiscoverScreen';
 
 import AgentScreen from '../../screens/appScreens/AgentScreen';
+import HomeScreen from '../../screens/appScreens/HomeScreen';
 import { DiscoverIcon, ExploreIcon, StarsIcon } from '../../assets/Index';
 
 const Tab = createBottomTabNavigator();
@@ -15,12 +16,22 @@ const DummyScreen = () => <View style={{ flex: 1, backgroundColor: '#000' }} />;
 const BottomTabs = () => {
   return (
     <Tab.Navigator
+      initialRouteName="HomeScreen"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: styles.tabBar,
       }}
     >
+      <Tab.Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+
       <Tab.Screen
         name="ExploreScreen"
         component={ExploreScreen}
