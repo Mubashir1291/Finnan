@@ -24,11 +24,12 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
+import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import RenderHTML from 'react-native-render-html';
 import {
   BorderColor,
@@ -459,6 +460,7 @@ const ChatMessage = memo(
 // ── Main component ──
 export default function AgentScreen({ navigation, route }) {
   const [messages, setMessages] = useState(initialMessages);
+  const [prompts, setPrompts] = useState([]);
   const [input, setInput] = useState('');
   const listRef = useRef(null);
   const { prompt } = route.params || {};
@@ -472,12 +474,15 @@ export default function AgentScreen({ navigation, route }) {
   const [sourcesModalVisible, setSourcesModalVisible] = useState(false);
   const [currentSources, setCurrentSources] = useState([]);
   const [selectedUrl, setSelectedUrl] = useState(null);
+  const [showPrompts, setShowPrompts] = useState(true);
+  const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
   const contentWidth = width - 80;
 
   // Refs for streaming debounce
   const streamBufferRef = useRef('');
   const streamTimerRef = useRef(null);
   const scrollTimerRef = useRef(null);
+  const justHandledPromptRef = useRef(false);
 
   // Throttled scroll — max once per 300ms to avoid scroll storms
   const scrollToBottom = useCallback(() => {
@@ -496,12 +501,52 @@ export default function AgentScreen({ navigation, route }) {
     }
   }, [messages, scrollToBottom]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (justHandledPromptRef.current) {
+        justHandledPromptRef.current = false;
+        return;
+      }
+
+      if (route.params?.prompt) {
+        // Fetch prompts silently so they are ready if needed later
+        axios
+          .get(
+            'https://finnanftb.com/wp-json/getsearchprompts/v1/get-search-prompts',
+          )
+          .then(res => setPrompts(res.data))
+          .catch(err => console.error('Silent prompt fetch failed', err));
+        return;
+      }
+
+      const fetchPrompts = async () => {
+        setIsFetchingPrompts(true);
+        setMessages(initialMessages);
+        setShowPrompts(true);
+        try {
+          const response = await axios.get(
+            'https://finnanftb.com/wp-json/getsearchprompts/v1/get-search-prompts',
+          );
+          setPrompts(response.data);
+        } catch (error) {
+          console.error('Failed to fetch prompts:', error);
+        } finally {
+          setIsFetchingPrompts(false);
+        }
+      };
+      fetchPrompts();
+    }, [route.params?.prompt]),
+  );
+
   const handleSend = useCallback(
     (customText = null) => {
       const isCustom = typeof customText === 'string';
       const textToSend = isCustom ? customText : input;
 
       if (!textToSend.trim()) return;
+
+      // Hide prompts when a message is sent
+      setShowPrompts(false);
       const userMsg = {
         id: String(Date.now()),
         role: 'user',
@@ -632,13 +677,15 @@ export default function AgentScreen({ navigation, route }) {
     CreateSession();
   }, []);
 
-  const lastSentPromptRef = useRef(null);
   useEffect(() => {
-    if (prompt && session && lastSentPromptRef.current !== prompt) {
-      lastSentPromptRef.current = prompt;
+    if (prompt && session) {
+      setMessages(initialMessages);
+      setShowPrompts(false);
       handleSend(prompt);
+      justHandledPromptRef.current = true;
+      navigation.setParams({ prompt: undefined });
     }
-  }, [prompt, session, handleSend]);
+  }, [prompt, session, handleSend, navigation]);
 
   const CreateSession = async () => {
     const aiToken = store.getState()?.user?.aiToken;
@@ -692,6 +739,8 @@ export default function AgentScreen({ navigation, route }) {
 
   const handleStartNewConversation = useCallback(() => {
     setMessages(initialMessages);
+    // Show prompts again for new conversation
+    setShowPrompts(true);
   }, []);
   const handleFeedbackSubmit = useCallback(() => {
     // Here you would send `rating` and `feedbackText` to your backend or analytics service
@@ -704,6 +753,14 @@ export default function AgentScreen({ navigation, route }) {
       position: 'top',
     });
   }, [rating, feedbackText]);
+
+  if (isFetchingPrompts) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color={'#fff'} />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: PrimaryColor }}>
@@ -748,6 +805,7 @@ export default function AgentScreen({ navigation, route }) {
                   The Global Football Master Agent. Powered by AI.{'\n'}Informed
                   by Data.
                 </Text>
+
                 <TouchableOpacity
                   style={styles.newConversationButton}
                   onPress={handleStartNewConversation}
@@ -760,6 +818,28 @@ export default function AgentScreen({ navigation, route }) {
             </>
           }
         />
+
+        {showPrompts && (
+          <View style={{ paddingBottom: VS(10) }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: S(16), gap: S(10) }}
+            >
+              {prompts.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.promptBox}
+                  onPress={() => handleSend(item?.prompt_title)}
+                >
+                  <Text style={styles.promptBoxText} numberOfLines={3}>
+                    {item?.prompt_title}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Input Row */}
         <View style={styles.inputRow}>
@@ -927,6 +1007,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: PrimaryColor,
+  },
+  loaderContainer: {
+    flex: 1,
+    backgroundColor: PrimaryColor,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     height: VS(60),
@@ -1251,5 +1337,30 @@ const styles = StyleSheet.create({
     fontSize: MS(12),
     fontFamily: 'Helvetica',
     textDecorationLine: 'underline',
+  },
+  promptsContainer: {
+    gap: S(10),
+    paddingBottom: VS(16),
+  },
+  promptBox: {
+    width: S(130),
+    height: S(75),
+    backgroundColor: '#1A1A1A',
+    borderRadius: MS(12),
+    padding: MS(12),
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: BorderColor,
+  },
+  promptBoxText: {
+    color: '#fff',
+    fontSize: MS(12),
+    fontFamily: 'Helvetica',
+    lineHeight: MS(16),
+  },
+  promptArrow: {
+    alignSelf: 'flex-end',
+    color: SubHeadingColor,
+    fontSize: MS(16),
   },
 });

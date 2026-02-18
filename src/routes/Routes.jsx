@@ -17,8 +17,8 @@ const Routes = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // return showSplash ? <SplashScreen /> : isLogin ? <AppStack /> : <AuthStack />;
-  return showSplash ? <SplashScreen /> : <AppStack />;
+  return showSplash ? <SplashScreen /> : isLogin ? <AppStack /> : <AuthStack />;
+  // return showSplash ? <SplashScreen /> : <AppStack />;
 };
 
 export default Routes;
