@@ -44,7 +44,7 @@ const DrawerContent = ({ navigation }) => {
           onPress={() =>
             navigation.navigate('Home', {
               screen: 'AgentScreen',
-              params: { agent: 1 },
+              params: { agent: 1, timestamp: Date.now() },
             })
           }
         />

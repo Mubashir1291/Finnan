@@ -47,6 +47,7 @@ import {
   BackArrowIcon,
   CopyIcon,
   MenuIcon,
+  SendIcon,
   StarsIcon,
   ThumbIcon,
   wwwIcon,
@@ -232,9 +233,9 @@ const ChatMessage = memo(
           Array.isArray(parsed.data.search_results)
         ) {
           const sources = parsed.data.search_results.map(result => ({
-            url: (result.url || '').replace(/"\s*$/, ''), // Clean trailing quote from example
-            title: result.title || 'No Title',
-            description: result.snippet || 'No Description',
+            url: (result?.url || '').replace(/"\s*$/, ''), // Clean trailing quote from example
+            title: result?.title || 'No Title',
+            description: result?.snippet || 'No Description',
           }));
           if (sources.length > 0) {
             return sources;
@@ -466,7 +467,7 @@ export default function AgentScreen({ navigation, route }) {
   const [messages, setMessages] = useState(initialMessages);
   const [prompts, setPrompts] = useState([]);
   const [input, setInput] = useState('');
-  const listRef = useRef(null);
+  const listRef = useRef(null); // Add timestamp to route params
   const { prompt, agent } = route.params || {};
   const activeAgentId = agent == 1 ? SPECIAL_AGENT_ID : DEFAULT_AGENT_ID;
   console.log(activeAgentId, 'activeeeeeeeeeeeeeeeeee');
@@ -489,6 +490,7 @@ export default function AgentScreen({ navigation, route }) {
   const streamBufferRef = useRef('');
   const streamTimerRef = useRef(null);
   const scrollTimerRef = useRef(null);
+  const isInitialMount = useRef(true);
   const justHandledPromptRef = useRef(false);
 
   // Throttled scroll — max once per 300ms to avoid scroll storms
@@ -508,6 +510,24 @@ export default function AgentScreen({ navigation, route }) {
     }
   }, [messages, scrollToBottom]);
 
+  const resetChat = useCallback(async () => {
+    setIsFetchingPrompts(true);
+    setMessages(initialMessages);
+    setShowPrompts(true);
+    try {
+      const response = await axios.get(
+        'https://finnanftb.com/wp-json/getsearchprompts/v1/get-search-prompts',
+      );
+      setPrompts(response.data);
+    } catch (error) {
+      console.error('Failed to fetch prompts:', error);
+    } finally {
+      setIsFetchingPrompts(false);
+    }
+  }, []);
+
+  const { timestamp } = route.params || {};
+
   useFocusEffect(
     useCallback(() => {
       if (justHandledPromptRef.current) {
@@ -526,24 +546,17 @@ export default function AgentScreen({ navigation, route }) {
         return;
       }
 
-      const fetchPrompts = async () => {
-        setIsFetchingPrompts(true);
-        setMessages(initialMessages);
-        setShowPrompts(true);
-        try {
-          const response = await axios.get(
-            'https://finnanftb.com/wp-json/getsearchprompts/v1/get-search-prompts',
-          );
-          setPrompts(response.data);
-        } catch (error) {
-          console.error('Failed to fetch prompts:', error);
-        } finally {
-          setIsFetchingPrompts(false);
-        }
-      };
-      fetchPrompts();
-    }, [route.params?.prompt]),
+      resetChat();
+    }, [route.params?.prompt, resetChat]),
   );
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else if (timestamp) {
+      resetChat();
+    }
+  }, [timestamp, resetChat]);
 
   const handleSend = useCallback(
     (customText = null) => {
@@ -655,8 +668,8 @@ export default function AgentScreen({ navigation, route }) {
                 : m,
             ),
           );
-        } catch (err) {
-          console.log('AI chat error:', err);
+        } catch (error) {
+          console.log('AI chat error:', error);
           if (streamTimerRef.current) {
             clearTimeout(streamTimerRef.current);
             streamTimerRef.current = null;
@@ -666,7 +679,7 @@ export default function AgentScreen({ navigation, route }) {
               m.id === thinkingId
                 ? {
                     ...m,
-                    text: err?.message || 'Sorry, something went wrong.',
+                    text: error?.message || 'Sorry, something went wrong.',
                     thinking: false,
                   }
                 : m,
@@ -826,7 +839,7 @@ export default function AgentScreen({ navigation, route }) {
           }
         />
 
-        {showPrompts && activeAgentId !== SPECIAL_AGENT_ID && (
+        {showPrompts && (
           <View style={{ paddingBottom: VS(10) }}>
             <ScrollView
               horizontal
@@ -865,7 +878,7 @@ export default function AgentScreen({ navigation, route }) {
             onPress={handleSend}
             disabled={isLoading}
           >
-            <Text style={styles.sendIcon}>➤</Text>
+            <Image source={SendIcon} style={styles.sendIcon} />
           </TouchableOpacity>
         </View>
 
@@ -972,9 +985,9 @@ export default function AgentScreen({ navigation, route }) {
                       <Text style={styles.sourceTitle} numberOfLines={2}>
                         {item?.title}
                       </Text>
-                      <Text style={styles.sourceDescription} numberOfLines={3}>
-                        {item?.snippet}
-                      </Text>
+                      {/* <Text style={styles.sourceDescription} numberOfLines={3}>
+                        {item?.description}
+                      </Text> */}
                       <Text style={styles.sourceUrl} numberOfLines={1}>
                         {item?.url}
                       </Text>
@@ -1168,8 +1181,10 @@ const styles = StyleSheet.create({
     borderWidth: MS(1),
   },
   sendIcon: {
-    fontSize: MS(17),
-    color: '#fff',
+    tintColor: '#fff',
+    width: S(20),
+    height: VS(20),
+    resizeMode: 'contain',
   },
   modalOverlay: {
     flex: 1,

@@ -59,6 +59,7 @@ const SignUpScreen = ({ navigation }) => {
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* <Image source={ArrowBackIcon} style={styles.icon} /> */}
           <BackButton />

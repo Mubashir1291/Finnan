@@ -14,7 +14,13 @@ import {
 import Video from 'react-native-video';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowBackIcon } from '../../assets/Index';
+import {
+  ArrowBackIcon,
+  volumeUp,
+  VolumeClose,
+  VolumeCloseIcon,
+  VolumeUpIcon,
+} from '../../assets/Index';
 import { MS, S, VS } from '../../utils/Responsive';
 import { SecondaryColor } from '../../utils/Colors';
 
@@ -22,10 +28,11 @@ const { width, height } = Dimensions.get('window');
 
 const VideoItem = ({ item, isActive }) => {
   const [loading, setLoading] = useState(true);
-  const [paused, setPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const handleTogglePause = () => {
-    setPaused(prev => !prev);
+    setIsPaused(prev => !prev);
   };
 
   return (
@@ -36,7 +43,8 @@ const VideoItem = ({ item, isActive }) => {
           style={styles.video}
           resizeMode="cover"
           repeat
-          paused={!isActive || paused}
+          paused={!isActive || isPaused}
+          muted={isMuted}
           onLoadStart={() => setLoading(true)}
           onLoad={() => setLoading(false)}
           controls={false}
@@ -52,13 +60,23 @@ const VideoItem = ({ item, isActive }) => {
       {/* Bottom Detail View */}
       <View style={styles.bottomView}>
         <View style={styles.infoRow}>
+          <Image source={{ uri: item?.image }} style={styles.playerImage} />
+
           <View style={styles.textWrapper}>
             <Text style={styles.videoTitle} numberOfLines={2}>
               {item?.title}
             </Text>
           </View>
-          {/* Player Image / Thumbnail */}
-          <Image source={{ uri: item?.image }} style={styles.playerImage} />
+
+          <TouchableOpacity
+            style={styles.volumeButton}
+            onPress={() => setIsMuted(!isMuted)}
+          >
+            <Image
+              source={isMuted ? VolumeCloseIcon : VolumeUpIcon}
+              style={styles.volumeIcon}
+            />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -185,24 +203,34 @@ const styles = StyleSheet.create({
     right: 0,
     padding: MS(20),
     paddingBottom: VS(20),
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    // backgroundColor: 'rgba(0,0,0,0.6)',
     borderTopLeftRadius: MS(20),
     borderTopRightRadius: MS(20),
     zIndex: 2,
   },
   infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
   },
   textWrapper: {
     flex: 1,
     paddingRight: S(12),
+    marginBottom: VS(15),
   },
   videoTitle: {
     color: '#fff',
     fontSize: MS(16),
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Manrope-Regular',
+    lineHeight: VS(20),
+  },
+  volumeButton: {
+    paddingLeft: MS(6),
+    alignSelf: 'flex-end',
+  },
+  volumeIcon: {
+    width: S(24),
+    height: VS(24),
+    tintColor: '#fff',
+    resizeMode: 'contain',
   },
   playerImage: {
     width: MS(50),
@@ -210,6 +238,7 @@ const styles = StyleSheet.create({
     borderRadius: MS(25),
     borderWidth: 1,
     borderColor: '#fff',
+    marginBottom: VS(10),
   },
   touchableOverlay: {
     ...StyleSheet.absoluteFillObject,

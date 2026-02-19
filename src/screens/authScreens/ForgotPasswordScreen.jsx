@@ -71,6 +71,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
             <Text style={styles.brand}>FINNAN</Text>

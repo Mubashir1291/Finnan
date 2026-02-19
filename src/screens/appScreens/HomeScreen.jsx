@@ -26,7 +26,13 @@ import {
   ButtonsColor,
 } from '../../utils/Colors';
 import { MS, S, VS } from '../../utils/Responsive';
-import { MenuIcon, UserIcon, Logo, LogoIcon } from '../../assets/Index';
+import {
+  MenuIcon,
+  UserIcon,
+  Logo,
+  LogoIcon,
+  SendIcon,
+} from '../../assets/Index';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -101,7 +107,7 @@ const HomeScreen = () => {
               returnKeyType="send"
             />
             <TouchableOpacity style={styles.sendButton} onPress={handleSearch}>
-              <Text style={styles.sendIcon}>➤</Text>
+              <Image source={SendIcon} style={styles.sendIcon} />
             </TouchableOpacity>
           </View>
 
@@ -218,10 +224,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendIcon: {
-    fontSize: MS(18),
-    color: '#fff',
-    fontFamily: 'Helvetica-Bold',
-    marginLeft: 2,
+    tintColor: '#fff',
+    width: S(20),
+    height: VS(20),
+    resizeMode: 'contain',
   },
   promptsContainer: {
     width: '100%',

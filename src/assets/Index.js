@@ -16,3 +16,7 @@ export const ThumbIcon = require('../assets/images/Thumb.png');
 export const wwwIcon = require('../assets/images/www.png');
 export const HomeIcon = require('../assets/images/Home.png');
 export const LogoIcon = require('../assets/images/Logo.png');
+export const VolumeUpIcon = require('../assets/images/VolumeUp.png');
+
+export const VolumeCloseIcon = require('../assets/images/VolumeClose.png');
+export const SendIcon = require('../assets/images/Send.png');

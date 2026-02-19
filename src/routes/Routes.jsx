@@ -38,21 +38,37 @@ const Routes = () => {
 
   useEffect(() => {
     if (isLogin) {
-      // Start the background timer to call handleAILogin every 2 minutes
-      intervalRef.current = BackgroundTimer.setInterval(() => {
-        handleAILogin();
-      }, 3300000); // 2 minutes = 120000 ms
+      try {
+        // Start the background timer to call handleAILogin every 55 minutes
+        intervalRef.current = BackgroundTimer.setInterval(() => {
+          handleAILogin();
+        }, 3300000); // 55 minutes = 3300000 ms
+      } catch (error) {
+        console.log('Error setting background timer:', error);
+        // Fallback to regular setInterval if BackgroundTimer fails
+        intervalRef.current = setInterval(() => {
+          handleAILogin();
+        }, 3300000);
+      }
     } else {
       // Clear the timer when not logged in
       if (intervalRef.current) {
-        BackgroundTimer.clearInterval(intervalRef.current);
+        try {
+          BackgroundTimer.clearInterval(intervalRef.current);
+        } catch (e) {
+          clearInterval(intervalRef.current);
+        }
         intervalRef.current = null;
       }
     }
 
     return () => {
       if (intervalRef.current) {
-        BackgroundTimer.clearInterval(intervalRef.current);
+        try {
+          BackgroundTimer.clearInterval(intervalRef.current);
+        } catch (e) {
+          clearInterval(intervalRef.current);
+        }
       }
     };
   }, [isLogin]);
