@@ -1,13 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import SplashScreen from '../screens/SplashScreen';
 import AuthStack from './AuthStack';
 import AppStack from './AppStack';
 
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { setIsLogin, setAiToken } from '../redux/Reducers/userReducer';
+import BackgroundTimer from 'react-native-background-timer';
+import { AI_LOGIN } from '../services/AppServices';
 
 const Routes = () => {
   const [showSplash, setShowSplash] = useState(true);
   const { isLogin } = useSelector(state => state.user);
+  const dispatch = useDispatch();
+  const intervalRef = useRef(null);
+
+  const handleAILogin = async () => {
+    const obj = {
+      email: 'waleed@webevis.com',
+      password: '12345678',
+    };
+    try {
+      const response = await AI_LOGIN(obj);
+      console.log(response, 'AI Login response');
+      dispatch(setAiToken(response?.auth?.access_token));
+    } catch (error) {
+      console.log('AI Login error', error);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -16,6 +35,27 @@ const Routes = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (isLogin) {
+      // Start the background timer to call handleAILogin every 2 minutes
+      intervalRef.current = BackgroundTimer.setInterval(() => {
+        handleAILogin();
+      }, 3300000); // 2 minutes = 120000 ms
+    } else {
+      // Clear the timer when not logged in
+      if (intervalRef.current) {
+        BackgroundTimer.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        BackgroundTimer.clearInterval(intervalRef.current);
+      }
+    };
+  }, [isLogin]);
 
   return showSplash ? <SplashScreen /> : isLogin ? <AppStack /> : <AuthStack />;
   // return showSplash ? <SplashScreen /> : <AppStack />;

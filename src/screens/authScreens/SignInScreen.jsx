@@ -90,7 +90,7 @@ const SignInScreen = ({ navigation }) => {
     };
     try {
       const response = await AI_LOGIN(obj);
-      // console.log(response, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+      console.log(response, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
       store.dispatch(setAiToken(response?.auth?.access_token));
     } catch (error) {}
   };
