@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,14 @@ import {
   FlatList,
 } from 'react-native';
 import Video from 'react-native-video';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useIsFocused,
+} from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ArrowBackIcon,
-  volumeUp,
-  VolumeClose,
   VolumeCloseIcon,
   VolumeUpIcon,
 } from '../../assets/Index';
@@ -31,6 +33,14 @@ const VideoItem = ({ item, isActive }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
+  useEffect(() => {
+    if (!isActive) {
+      setIsPaused(true);
+    } else {
+      setIsPaused(false);
+    }
+  }, [isActive]);
+
   const handleTogglePause = () => {
     setIsPaused(prev => !prev);
   };
@@ -39,6 +49,9 @@ const VideoItem = ({ item, isActive }) => {
     <View style={styles.videoContainer}>
       <Pressable onPress={handleTogglePause} style={styles.touchableOverlay}>
         <Video
+          key={
+            isActive ? `video-${item?.id}-active` : `video-${item?.id}-inactive`
+          }
           source={{ uri: item?.video || item?.video_url }}
           style={styles.video}
           resizeMode="cover"
@@ -48,6 +61,9 @@ const VideoItem = ({ item, isActive }) => {
           onLoadStart={() => setLoading(true)}
           onLoad={() => setLoading(false)}
           controls={false}
+          playInBackground={false}
+          playWhenInactive={false}
+          ignoreSilentSwitch="ignore"
         />
       </Pressable>
 
@@ -57,7 +73,6 @@ const VideoItem = ({ item, isActive }) => {
         </View>
       )}
 
-      {/* Bottom Detail View */}
       <View style={styles.bottomView}>
         <View style={styles.infoRow}>
           <Image source={{ uri: item?.image }} style={styles.playerImage} />
@@ -70,7 +85,7 @@ const VideoItem = ({ item, isActive }) => {
 
           <TouchableOpacity
             style={styles.volumeButton}
-            onPress={() => setIsMuted(!isMuted)}
+            onPress={() => setIsMuted(prev => !prev)}
           >
             <Image
               source={isMuted ? VolumeCloseIcon : VolumeUpIcon}
@@ -86,27 +101,32 @@ const VideoItem = ({ item, isActive }) => {
 const VideoPlayerScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const isFocused = useIsFocused();
   const { videos, startIndex = 0 } = route.params;
+
   const [activeVideoIndex, setActiveVideoIndex] = useState(startIndex);
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
       const newIndex = viewableItems[0].index;
-      if (newIndex !== null && newIndex !== activeVideoIndex) {
+      if (newIndex !== null) {
         setActiveVideoIndex(newIndex);
       }
     }
   }).current;
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50,
+    itemVisiblePercentThreshold: 90,
   }).current;
 
   const renderItem = useCallback(
-    ({ item, index }) => {
-      return <VideoItem item={item} isActive={index === activeVideoIndex} />;
-    },
-    [activeVideoIndex],
+    ({ item, index }) => (
+      <VideoItem
+        item={item}
+        isActive={index === activeVideoIndex && isFocused}
+      />
+    ),
+    [activeVideoIndex, isFocused],
   );
 
   const keyExtractor = useCallback(
@@ -137,14 +157,13 @@ const VideoPlayerScreen = () => {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         getItemLayout={getItemLayout}
-        style={{ flex: 1 }}
         windowSize={3}
         maxToRenderPerBatch={1}
         initialNumToRender={1}
         removeClippedSubviews
+        extraData={activeVideoIndex}
       />
 
-      {/* Back Button */}
       <SafeAreaView style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -233,8 +252,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   playerImage: {
-    width: MS(50),
-    height: MS(50),
+    width: MS(40),
+    height: MS(40),
     borderRadius: MS(25),
     borderWidth: 1,
     borderColor: '#fff',

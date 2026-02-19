@@ -1,15 +1,54 @@
-import { StyleSheet, Text, View } from 'react-native';
-import React, { useEffect } from 'react';
+import { StyleSheet, Text, View, Animated } from 'react-native';
+import React, { useEffect, useRef } from 'react';
 import { setIsLogin } from '../redux/Reducers/userReducer';
 import { store } from '../redux/store';
+import { MS, S, VS } from '../utils/Responsive';
 
 const SplashScreen = () => {
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     store.dispatch(setIsLogin(false));
+    Animated.sequence([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
   return (
     <View style={styles.Container}>
-      <Text style={{ fontSize: 20, color: 'white' }}>FINNAN</Text>
+      <Animated.Text
+        style={{
+          fontSize: 30,
+          fontFamily: 'Helvetica-Bold',
+          color: 'white',
+          transform: [{ scale: scaleAnim }],
+        }}
+      >
+        FINNAN
+      </Animated.Text>
+      <Animated.Text
+        style={{
+          color: 'white',
+          textAlign: 'center',
+          marginTop: VS(5),
+          fontSize: MS(16),
+          fontFamily: 'Manrope-Medium',
+          opacity: fadeAnim,
+          paddingHorizontal: S(20),
+        }}
+      >
+        Finnan — Your AI Agent for Football Wealth, Tax & Investment Mastery
+      </Animated.Text>
     </View>
   );
 };
