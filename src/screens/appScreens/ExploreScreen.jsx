@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   durationText: {
     color: '#fff',
     fontSize: MS(11),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
 
   textContainer: {
@@ -216,6 +216,6 @@ const styles = StyleSheet.create({
   authorText: {
     color: 'white',
     fontSize: MS(10),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
 });

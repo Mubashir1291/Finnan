@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: MS(14),
     color: SubHeadingColor,
-    fontFamily: 'Helvetica-light',
+    fontFamily: 'Manrope-Light',
   },
   infoSection: {
     marginBottom: VS(40),
@@ -181,12 +181,12 @@ const styles = StyleSheet.create({
     fontSize: MS(12),
     color: SubHeadingColor,
     marginBottom: VS(4),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
   infoValue: {
     fontSize: MS(16),
     color: HeadingColor,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
   logoutButton: {
     backgroundColor: '#FF3B30',

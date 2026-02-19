@@ -40,8 +40,13 @@ const DrawerContent = ({ navigation }) => {
         />
         <Item
           icon={StarsIcon}
-          label="Finnan"
-          onPress={() => navigation.navigate('Home', { screen: 'AgentScreen' })}
+          label="Ask Finnan"
+          onPress={() =>
+            navigation.navigate('Home', {
+              screen: 'AgentScreen',
+              params: { agent: 1 },
+            })
+          }
         />
 
         <Item
@@ -104,7 +109,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: MS(1),
     borderBottomColor: '#222',
   },
-  title: { color: '#fff', fontSize: MS(26), fontWeight: '900' },
+  title: { color: '#fff', fontSize: MS(26), fontFamily: 'Helvetica-Bold' },
   itemsWrap: { paddingHorizontal: S(8), paddingTop: VS(10) },
   item: {
     flexDirection: 'row',
@@ -119,7 +124,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginRight: S(14),
   },
-  itemLabel: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  itemLabel: { color: '#fff', fontSize: 16, fontFamily: 'Manrope-Medium' },
   bottom: { padding: MS(16), marginTop: 'auto' },
   loginBtn: {
     backgroundColor: '#fff',
@@ -127,5 +132,5 @@ const styles = StyleSheet.create({
     borderRadius: MS(10),
     alignItems: 'center',
   },
-  loginText: { color: '#000', fontWeight: '700' },
+  loginText: { color: '#000', fontFamily: 'Helvetica-Bold' },
 });

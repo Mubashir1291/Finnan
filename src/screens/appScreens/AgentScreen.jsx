@@ -46,6 +46,7 @@ import {
   ArrowBackIcon,
   BackArrowIcon,
   CopyIcon,
+  MenuIcon,
   StarsIcon,
   ThumbIcon,
   wwwIcon,
@@ -54,6 +55,9 @@ import { userSession, AI_CHATTING_STREAM } from '../../services/config';
 import { store } from '../../redux/store';
 import { MS, S, VS } from '../../utils/Responsive';
 import { Rating } from 'react-native-ratings';
+
+const DEFAULT_AGENT_ID = 'ab819286-74f4-4cec-ba2d-adce02c00432';
+const SPECIAL_AGENT_ID = '6562ff83-c929-445f-8cc1-c94521f88ade';
 
 const initialMessages = [
   {
@@ -80,13 +84,13 @@ const OUTPUT_INSTRUCTIONS = `
 // ── Moved outside component to avoid re-creation on every render ──
 const TAG_STYLES = {
   body: {
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     color: HeadingColor,
     lineHeight: 22,
     fontSize: 14,
   },
   p: {
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     marginVertical: 4,
     color: HeadingColor,
     lineHeight: 22,
@@ -147,17 +151,17 @@ const TAG_STYLES = {
     paddingVertical: 8,
     paddingHorizontal: 6,
     fontSize: 11,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     color: SubHeadingColor,
     textAlign: 'center',
   },
   ul: { marginVertical: 4, paddingLeft: 16 },
-  li: { marginVertical: 2, color: HeadingColor, fontFamily: 'Helvetica' },
+  li: { marginVertical: 2, color: HeadingColor, fontFamily: 'Manrope-Regular' },
   a: { color: '#4da6ff', textDecorationLine: 'underline' },
 };
 
 const BASE_STYLE = {
-  fontFamily: 'Helvetica',
+  fontFamily: 'Manrope-Regular',
   color: HeadingColor,
   fontSize: 14,
 };
@@ -463,7 +467,10 @@ export default function AgentScreen({ navigation, route }) {
   const [prompts, setPrompts] = useState([]);
   const [input, setInput] = useState('');
   const listRef = useRef(null);
-  const { prompt } = route.params || {};
+  const { prompt, agent } = route.params || {};
+  const activeAgentId = agent == 1 ? SPECIAL_AGENT_ID : DEFAULT_AGENT_ID;
+  console.log(activeAgentId, 'activeeeeeeeeeeeeeeeeee');
+
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -578,7 +585,7 @@ export default function AgentScreen({ navigation, route }) {
         }
 
         const payload = {
-          agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
+          agent_id: activeAgentId,
           session_id: session,
           query: `${userMsg.text}\n\n${OUTPUT_INSTRUCTIONS}`,
         };
@@ -670,12 +677,12 @@ export default function AgentScreen({ navigation, route }) {
         }
       })();
     },
-    [input, session],
+    [input, session, activeAgentId],
   );
 
   useEffect(() => {
     CreateSession();
-  }, []);
+  }, [activeAgentId]);
 
   useEffect(() => {
     if (prompt && session) {
@@ -697,7 +704,7 @@ export default function AgentScreen({ navigation, route }) {
     }
     const obj = {
       platform_id: 'interdiscvr',
-      agent_id: 'ab819286-74f4-4cec-ba2d-adce02c00432',
+      agent_id: activeAgentId,
       mode: 'agent',
     };
     try {
@@ -773,9 +780,9 @@ export default function AgentScreen({ navigation, route }) {
         <View style={styles.header}>
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.openDrawer()}
           >
-            <Image source={BackArrowIcon} style={styles.iconSmall} />
+            <Image source={MenuIcon} style={styles.iconSmall} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>FINNAN</Text>
           <TouchableOpacity style={{ width: '5%' }} activeOpacity={0.7}>
@@ -819,7 +826,7 @@ export default function AgentScreen({ navigation, route }) {
           }
         />
 
-        {showPrompts && (
+        {showPrompts && activeAgentId !== SPECIAL_AGENT_ID && (
           <View style={{ paddingBottom: VS(10) }}>
             <ScrollView
               horizontal
@@ -1017,10 +1024,11 @@ const styles = StyleSheet.create({
   header: {
     height: VS(60),
     backgroundColor: PrimaryColor,
-    paddingHorizontal: S(16),
+    paddingHorizontal: S(20),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: VS(10),
   },
   headerTitle: {
     color: '#fff',
@@ -1029,8 +1037,8 @@ const styles = StyleSheet.create({
     marginTop: VS(5),
   },
   iconSmall: {
-    width: S(20),
-    height: VS(20),
+    width: S(25),
+    height: VS(25),
     resizeMode: 'contain',
     tintColor: '#fff',
   },
@@ -1046,7 +1054,7 @@ const styles = StyleSheet.create({
   newConversationText: {
     color: HeadingColor,
     fontSize: MS(14),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
   listContent: {
     padding: MS(16),
@@ -1089,7 +1097,7 @@ const styles = StyleSheet.create({
     fontSize: MS(14),
     color: HeadingColor,
     lineHeight: VS(20),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
   messageTextUser: {
     color: PrimaryColor,
@@ -1102,7 +1110,7 @@ const styles = StyleSheet.create({
   thinkingText: {
     color: SubHeadingColor,
     fontSize: MS(14),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
   galleryImage: {
     width: S(180),
@@ -1137,7 +1145,7 @@ const styles = StyleSheet.create({
   },
   input: {
     color: HeadingColor,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     flex: 1,
     minHeight: VS(40),
     maxHeight: VS(120),
@@ -1226,7 +1234,7 @@ const styles = StyleSheet.create({
     color: SubHeadingColor,
     lineHeight: VS(20),
     marginBottom: VS(16),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Light',
   },
   feedbackModalContainer: {
     width: '85%',
@@ -1264,7 +1272,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BorderColor,
     fontSize: MS(14),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
   submitFeedbackButton: {
     backgroundColor: SecondaryColor,
@@ -1329,13 +1337,13 @@ const styles = StyleSheet.create({
   sourceDescription: {
     color: SubHeadingColor,
     fontSize: MS(12),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     marginBottom: VS(6),
   },
   sourceUrl: {
     color: SubHeadingColor,
     fontSize: MS(12),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     textDecorationLine: 'underline',
   },
   promptsContainer: {
@@ -1355,7 +1363,7 @@ const styles = StyleSheet.create({
   promptBoxText: {
     color: '#fff',
     fontSize: MS(12),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     lineHeight: MS(16),
   },
   promptArrow: {

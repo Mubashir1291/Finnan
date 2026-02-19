@@ -54,6 +54,12 @@ const BottomTabs = () => {
       <Tab.Screen
         name="AgentScreen"
         component={AgentScreen}
+        listeners={({ navigation }) => ({
+          tabPress: e => {
+            e.preventDefault();
+            navigation.navigate('AgentScreen', { agent: 2 });
+          },
+        })}
         options={{
           tabBarIcon: ({ focused }) => (
             <View

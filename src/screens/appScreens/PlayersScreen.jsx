@@ -37,5 +37,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: { color: '#fff', fontSize: MS(22), fontFamily: 'Helvetica-Bold' },
-  sub: { color: '#ccc', marginTop: VS(8), fontFamily: 'Helvetica-light' },
+  sub: { color: '#ccc', marginTop: VS(8), fontFamily: 'Manrope-Light' },
 });

@@ -23,7 +23,7 @@ const AuthStack = () => {
         animation: 'slide_from_right',
       }}
     >
-      {!isOnboardingCompleted && <Stack.Screen name="OnboardingScreen" component={OnboardingScreen} />}
+      {/* {!isOnboardingCompleted && <Stack.Screen name="OnboardingScreen" component={OnboardingScreen} />} */}
       <Stack.Screen name="SignInScreen" component={SignInScreen} />
       <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />

@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: MS(14),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     color: SubHeadingColor,
     textAlign: 'center',
     lineHeight: VS(22),
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: ButtonsColor,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     fontSize: MS(14),
     paddingHorizontal: S(16),
     paddingVertical: VS(10),
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   promptText: {
     color: '#fff',
     fontSize: MS(13),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
   // promptArrow: {
   //   color: SubHeadingColor,

@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   url: {
     color: SecondaryColor,
     fontSize: MS(12),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
     textDecorationLine: 'underline',
   },
   emptyContainer: {
@@ -140,6 +140,6 @@ const styles = StyleSheet.create({
   emptyText: {
     color: SubHeadingColor,
     fontSize: MS(14),
-    fontFamily: 'Helvetica',
+    fontFamily: 'Manrope-Regular',
   },
 });
