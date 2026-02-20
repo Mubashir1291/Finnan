@@ -13,8 +13,8 @@ const SplashScreen = () => {
     Animated.sequence([
       Animated.spring(scaleAnim, {
         toValue: 1,
-        friction: 5,
-        tension: 40,
+        friction: 10,
+        tension: 10,
         useNativeDriver: true,
       }),
       Animated.timing(fadeAnim, {
@@ -59,6 +59,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'Black',
+    backgroundColor: 'black',
   },
 });

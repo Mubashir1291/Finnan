@@ -29,12 +29,6 @@ const AuthStack = () => {
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="OTPScreen" component={OTPScreen} />
       <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
-
-      {/* <Stack.Screen name="ProfileScreenAuth" component={ProfileScreenAuth} />
-      <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
-      <Stack.Screen name="OTPScreen" component={OTPScreen} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-      <Stack.Screen name="UpdatePassword" component={UpdatePassword} /> */}
     </Stack.Navigator>
   );
 };
