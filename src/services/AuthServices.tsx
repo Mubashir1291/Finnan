@@ -19,7 +19,18 @@ export const LOGIN_ACCOUNT = (payload: any) => {
 };
 
 export const UPDATE_PASSWORD = (payload: any) => {
-  return Fetch.post(endPoints.UPDATE_PASSWORD, payload);
+  const formData = new FormData();
+  formData.append('user_id', payload.user_id);
+  formData.append('old_password', payload.old_password);
+  formData.append('new_password', payload.new_password);
+  formData.append('please_change_my_password', '1');
+
+  const response = Fetch.post(
+    `/wp-json/resetuserpassword/v1${endPoints.UPDATEPASSWORD}`,
+    formData,
+    true,
+  );
+  return response;
 };
 
 export const FORGOT_PASSWORD = (email: any) => {

@@ -10,13 +10,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../redux/Reducers/userReducer';
-import { ArrowBackIcon } from '../../assets/Index';
+import {
+  ArrowBackIcon,
+  DeleteIcon,
+  LogoutIcon,
+  PrivacyIcon,
+  RightArrowIcon,
+  UnlockIcon,
+  UserIcon,
+} from '../../assets/Index';
 import {
   PrimaryColor,
   SecondaryColor,
   HeadingColor,
   SubHeadingColor,
   BorderColor,
+  UserBubbleColor,
+  ButtonsColor,
 } from '../../utils/Colors';
 import { S, VS, MS } from '../../utils/Responsive';
 
@@ -71,29 +81,52 @@ const ProfileScreen = ({ navigation }) => {
             {userData?.data?.user_email || ''}
           </Text>
         </View>
-
         {/* User Info Section */}
-        {/* <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Account Information</Text>
-
-          {userData?.name && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name</Text>
-              <Text style={styles.infoValue}>{userData.name}</Text>
-            </View>
-          )}
-
-          {userData?.email && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{userData.email}</Text>
-            </View>
-          )}
+        {/* Edit PRofile  */}
+        {/* <View style={styles.infoRow}>
+          <View style={styles.leftContainer}>
+            <Image source={UserIcon} style={styles.infoIcon} />
+            <Text style={styles.sectionTitle}>Edit Profile</Text>
+          </View>
+          <Image source={RightArrowIcon} style={styles.rightArrow} />
         </View> */}
-
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
+        {/* Update Password  */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('UpdatePasswordScreen')}
+        >
+          <View style={styles.infoRow}>
+            <View style={styles.leftContainer}>
+              <Image source={UnlockIcon} style={styles.infoIcon} />
+              <Text style={styles.sectionTitle}>Update Password</Text>
+            </View>
+            <Image source={RightArrowIcon} style={styles.rightArrow} />
+          </View>
+        </TouchableOpacity>
+        {/* Delete Account   */}
+        {/* <View style={styles.infoRow}>
+          <View style={styles.leftContainer}>
+            <Image source={DeleteIcon} style={styles.infoIcon} />
+            <Text style={styles.sectionTitle}>Delete Account</Text>
+          </View>
+          <Image source={RightArrowIcon} style={styles.rightArrow} />
+        </View> */}
+        {/* Privacy Policy   */}
+        {/* <View style={styles.infoRow}>
+          <View style={styles.leftContainer}>
+            <Image source={PrivacyIcon} style={styles.infoIcon} />
+            <Text style={styles.sectionTitle}>Privacy Policy</Text>
+          </View>
+          <Image source={RightArrowIcon} style={styles.rightArrow} />
+        </View> */}
+        {/* Logout*/}
+        <TouchableOpacity onPress={handleLogout}>
+          <View style={styles.infoRow}>
+            <View style={styles.leftContainer}>
+              <Image source={LogoutIcon} style={styles.infoIcon} />
+              <Text style={styles.sectionTitle}>Logout</Text>
+            </View>
+            <Image source={RightArrowIcon} style={styles.rightArrow} />
+          </View>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -161,43 +194,45 @@ const styles = StyleSheet.create({
     color: SubHeadingColor,
     fontFamily: 'Manrope-Light',
   },
-  infoSection: {
-    marginBottom: VS(40),
-  },
+
   sectionTitle: {
     fontSize: MS(14),
     fontFamily: 'Helvetica-Bold',
     color: SubHeadingColor,
-    marginBottom: VS(16),
-    textTransform: 'uppercase',
     letterSpacing: 1,
   },
   infoRow: {
-    paddingVertical: VS(16),
-    borderBottomWidth: 1,
-    borderBottomColor: BorderColor,
-  },
-  infoLabel: {
-    fontSize: MS(12),
-    color: SubHeadingColor,
-    marginBottom: VS(4),
-    fontFamily: 'Manrope-Regular',
-  },
-  infoValue: {
-    fontSize: MS(16),
-    color: HeadingColor,
-    fontFamily: 'Manrope-Regular',
-  },
-  logoutButton: {
-    backgroundColor: '#FF3B30',
-    paddingVertical: VS(14),
-    borderRadius: MS(10),
+    borderWidth: MS(1),
+    borderColor: UserBubbleColor,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: VS(40),
+    justifyContent: 'space-between',
+    backgroundColor: ButtonsColor,
+    borderRadius: MS(15),
+    width: '100%',
+    paddingHorizontal: S(16),
+    paddingVertical: VS(8),
+    marginBottom: VS(10),
+    gap: 5,
   },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: MS(16),
-    fontFamily: 'Helvetica-Bold',
+
+  leftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoIcon: {
+    width: S(15),
+    height: VS(15),
+    tintColor: SubHeadingColor,
+    marginRight: S(16),
+    resizeMode: 'contain',
+  },
+
+  rightArrow: {
+    width: S(15),
+    height: VS(15),
+    tintColor: SubHeadingColor,
+    resizeMode: 'contain',
   },
 });

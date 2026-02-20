@@ -4,6 +4,7 @@ import DrawerNavigator from './DrawerNavigator';
 import ProfileScreen from '../screens/appScreens/ProfileScreen';
 import VideoPlayerScreen from '../screens/appScreens/VideoPlayerScreen';
 import SourceScreen from '../screens/appScreens/SourceScreen';
+import UpdatePasswordScreen from '../screens/authScreens/UpdatePasswordScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,10 @@ const AppStack = () => {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="VideoPlayerScreen" component={VideoPlayerScreen} />
       <Stack.Screen name="SourceScreen" component={SourceScreen} />
+      <Stack.Screen
+        name="UpdatePasswordScreen"
+        component={UpdatePasswordScreen}
+      />
     </Stack.Navigator>
   );
 };

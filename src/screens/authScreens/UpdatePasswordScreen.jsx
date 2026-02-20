@@ -9,15 +9,21 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
+import { useSelector } from 'react-redux';
 import { HideIcon, ViewIcon } from '../../assets/Index';
 import { S, VS, MS } from '../../utils/Responsive';
+import { UPDATE_PASSWORD } from '../../services/AuthServices';
+import { store } from '../../redux/store';
+import { setIsLogin } from '../../redux/Reducers/userReducer';
 
 const PasswordSchema = Yup.object().shape({
+  oldPassword: Yup.string().required('Old Password is required'),
   password: Yup.string().min(6, 'Too short').required('Password is required'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password'), null], 'Passwords must match')
@@ -26,8 +32,11 @@ const PasswordSchema = Yup.object().shape({
 
 const UpdatePasswordScreen = ({ navigation, route }) => {
   const { email } = route.params || {};
+  const userData = useSelector(state => state.user.userData);
+  const [showOldPassword, setShowOldPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -38,6 +47,7 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
             <Text style={styles.brand}>FINNAN</Text>
@@ -45,22 +55,53 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
 
           <View style={styles.content}>
             <Text style={styles.title}>Create a new password</Text>
-            <Text style={styles.subtitle}>for {email || 'your account'}</Text>
+            {/* <Text style={styles.subtitle}>for {email || 'your account'}</Text> */}
 
             <Formik
-              initialValues={{ password: '', confirmPassword: '' }}
+              initialValues={{
+                oldPassword: '',
+                password: '',
+                confirmPassword: '',
+              }}
               validationSchema={PasswordSchema}
-              onSubmit={values => {
-                // TODO: call API to update password
-                Toast.show({
-                  type: 'success',
-                  text1: 'Password updated',
-                  text2: 'You can now sign in with your new password',
-                  visibilityTime: 2500,
-                });
-                setTimeout(() => {
-                  navigation.navigate('SignInScreen');
-                }, 2000);
+              onSubmit={async values => {
+                setIsLoading(true);
+                try {
+                  const payload = {
+                    user_id: userData?.data?.ID,
+                    old_password: values.oldPassword,
+                    new_password: values.password,
+                  };
+                  const response = await UPDATE_PASSWORD(payload);
+                  console.log(response, 'response update password');
+                  setIsLoading(false);
+                  if (response === 'Success') {
+                    Toast.show({
+                      type: 'success',
+                      text1: 'Password updated',
+                      text2: 'You can now sign in with your new password',
+                      visibilityTime: 2500,
+                    });
+                    setTimeout(() => {
+                      store.dispatch(setIsLogin(false));
+                    }, 2000);
+                  } else {
+                    Toast.show({
+                      type: 'error',
+                      text1: 'Update Failed',
+                      text2: response?.message || 'Something went wrong',
+                      visibilityTime: 2500,
+                    });
+                  }
+                } catch (error) {
+                  setIsLoading(false);
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Update Failed',
+                    text2: error?.message || 'Something went wrong',
+                    visibilityTime: 2500,
+                  });
+                }
               }}
             >
               {({
@@ -72,6 +113,30 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
                 touched,
               }) => (
                 <View style={{ width: '100%' }}>
+                  <View>
+                    <TextInput
+                      placeholder="Old Password"
+                      placeholderTextColor="#999"
+                      style={[styles.input, { paddingRight: S(50) }]}
+                      secureTextEntry={!showOldPassword}
+                      onChangeText={handleChange('oldPassword')}
+                      onBlur={handleBlur('oldPassword')}
+                      value={values.oldPassword}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowOldPassword(!showOldPassword)}
+                      style={styles.eyeIcon}
+                    >
+                      <Image
+                        source={showOldPassword ? ViewIcon : HideIcon}
+                        style={styles.iconImage}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {errors.oldPassword && touched.oldPassword && (
+                    <Text style={styles.error}>{errors.oldPassword}</Text>
+                  )}
+
                   <View>
                     <TextInput
                       placeholder="Password"
@@ -125,8 +190,13 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
                   <TouchableOpacity
                     style={styles.button}
                     onPress={handleSubmit}
+                    disabled={isLoading}
                   >
-                    <Text style={styles.buttonText}>Update password</Text>
+                    {isLoading ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text style={styles.buttonText}>Update password</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}

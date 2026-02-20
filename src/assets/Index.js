@@ -20,3 +20,9 @@ export const VolumeUpIcon = require('../assets/images/VolumeUp.png');
 
 export const VolumeCloseIcon = require('../assets/images/VolumeClose.png');
 export const SendIcon = require('../assets/images/Send.png');
+export const DeleteIcon = require('../assets/images/Delete.png');
+export const LogoutIcon = require('../assets/images/Logout.png');
+export const PrivacyIcon = require('../assets/images/Privacy.png');
+export const RightArrowIcon = require('../assets/images/RightArrow.png');
+export const UnlockIcon = require('../assets/images/Unlock.png');
+export const CameraIcon = require('../assets/images/Camera.png');
