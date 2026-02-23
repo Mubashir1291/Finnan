@@ -41,14 +41,25 @@ export const FORGOT_PASSWORD = (email: any) => {
   return response;
 };
 
-export const EDIT_PROFILE = (payload: any) => {
-  return Fetch.post(endPoints.EDIT_PROFILE, payload);
-};
+export const UPDATE_AVATAR = (payload: any, image: any) => {
+  const formData = new FormData();
+  formData.append('user_id', payload.user_id);
+  formData.append('user_avatar_upload', {
+    uri: image.uri,
+    type: image.type || 'image/jpeg',
+    name: image.fileName || 'avatar.jpg',
+  });
 
-export const UPDATE_AVATAR = (formData: FormData) => {
-  return Fetch.upload(endPoints.UPDATE_AVATAR, formData);
+  const response = Fetch.post(
+    `/wp-json/upoload-profile-avatar/v1${endPoints.AVATAR}`,
+    formData,
+    true,
+  );
+  return response;
 };
 
 export const GET_PROFILE_AVATAR = (userId: string | number) => {
-  return Fetch.get(`${endPoints.GET_AVATAR}?user_id=${userId}`);
+  return Fetch.get(
+    `/wp-json/get-profile-avatar/v1${endPoints.GET_AVATAR}?user_id=${userId}`,
+  );
 };

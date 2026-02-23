@@ -9,7 +9,7 @@ const SplashScreen = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    store.dispatch(setIsLogin(false));
+    // store.dispatch(setIsLogin(false));
     Animated.sequence([
       Animated.spring(scaleAnim, {
         toValue: 1,
