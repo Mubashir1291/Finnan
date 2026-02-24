@@ -33,8 +33,23 @@ export const UPDATE_PASSWORD = (payload: any) => {
   return response;
 };
 
+export const UPDATE_PROFILE = (payload: any) => {
+  const formData = new FormData();
+  formData.append('user_id', payload.user_id);
+  formData.append('address', payload.address);
+  formData.append('phone', payload.phone);
+  formData.append('first_name', payload.first_name);
+  formData.append('is_submit', '1');
+
+  const response = Fetch.post(
+    `/wp-json/updateuserprofileinfo/v1${endPoints.EDIT_PROFILE}`,
+    formData,
+    true,
+  );
+  return response;
+};
 export const FORGOT_PASSWORD = (email: any) => {
-  console.log(email, 'hhhhhhhhhhhhhhhhhhhhhhh');
+  // console.log(email, 'hhhhhhhhhhhhhhhhhhhhhhh');
   const response = Fetch.get(
     `/wp-json/userforgotpassword/v1${endPoints.FORGOTPASSWORD}?email=${email?.email}`,
   );

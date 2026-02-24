@@ -26,3 +26,5 @@ export const PrivacyIcon = require('../assets/images/Privacy.png');
 export const RightArrowIcon = require('../assets/images/RightArrow.png');
 export const UnlockIcon = require('../assets/images/Unlock.png');
 export const CameraIcon = require('../assets/images/Camera.png');
+export const PhoneIcon = require('../assets/images/Phone.png');
+export const AddressIcon = require('../assets/images/Address.png');

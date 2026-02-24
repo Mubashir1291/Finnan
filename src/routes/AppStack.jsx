@@ -5,6 +5,7 @@ import ProfileScreen from '../screens/appScreens/ProfileScreen';
 import VideoPlayerScreen from '../screens/appScreens/VideoPlayerScreen';
 import SourceScreen from '../screens/appScreens/SourceScreen';
 import UpdatePasswordScreen from '../screens/authScreens/UpdatePasswordScreen';
+import UpdateProfile from '../screens/appScreens/UpdateProfile';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ const AppStack = () => {
         name="UpdatePasswordScreen"
         component={UpdatePasswordScreen}
       />
+      <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
     </Stack.Navigator>
   );
 };

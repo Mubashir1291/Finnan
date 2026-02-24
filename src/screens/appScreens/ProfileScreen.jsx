@@ -203,13 +203,15 @@ const ProfileScreen = ({ navigation }) => {
         </View>
         {/* User Info Section */}
         {/* Edit PRofile  */}
-        {/* <View style={styles.infoRow}>
-          <View style={styles.leftContainer}>
-            <Image source={UserIcon} style={styles.infoIcon} />
-            <Text style={styles.sectionTitle}>Edit Profile</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('UpdateProfile')}>
+          <View style={styles.infoRow}>
+            <View style={styles.leftContainer}>
+              <Image source={UserIcon} style={styles.infoIcon} />
+              <Text style={styles.sectionTitle}>Edit Profile</Text>
+            </View>
+            <Image source={RightArrowIcon} style={styles.rightArrow} />
           </View>
-          <Image source={RightArrowIcon} style={styles.rightArrow} />
-        </View> */}
+        </TouchableOpacity>
         {/* Update Password  */}
         <TouchableOpacity
           onPress={() => navigation.navigate('UpdatePasswordScreen')}
@@ -267,8 +269,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: S(16),
     paddingVertical: VS(12),
-    borderBottomWidth: 1,
-    borderBottomColor: BorderColor,
   },
   backIcon: {
     width: S(20),
@@ -288,7 +288,6 @@ const styles = StyleSheet.create({
   avatarContainer: {
     alignItems: 'center',
     marginBottom: VS(32),
-    paddingTop: VS(20),
   },
   avatar: {
     width: MS(100),

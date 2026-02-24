@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -230,8 +231,9 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   promptsContainer: {
-    width: '100%',
+    width: Dimensions.get('window').width,
     marginTop: VS(24),
+    marginLeft: S(50),
   },
   promptItem: {
     flexDirection: 'row',
