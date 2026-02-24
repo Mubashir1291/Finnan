@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     width: S(30),
     height: VS(30),
     borderRadius: MS(8),
-    backgroundColor: '#D8FF00', // neon yellow
+    backgroundColor: '#fff', // neon yellow
     justifyContent: 'center',
     alignItems: 'center',
   },

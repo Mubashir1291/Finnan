@@ -21,7 +21,6 @@ import {
 } from '../../assets/Index';
 import {
   PrimaryColor,
-  SecondaryColor,
   HeadingColor,
   SubHeadingColor,
   BorderColor,

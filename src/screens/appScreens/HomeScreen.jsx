@@ -22,7 +22,6 @@ import {
   HeadingColor,
   SubHeadingColor,
   BorderColor,
-  SecondaryColor,
   ButtonsColor,
 } from '../../utils/Colors';
 import { MS, S, VS } from '../../utils/Responsive';

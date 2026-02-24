@@ -37,7 +37,6 @@ import {
   HeadingColor,
   InputBgColor,
   PrimaryColor,
-  SecondaryColor,
   SubHeadingColor,
 } from '../../utils/Colors';
 
@@ -1290,7 +1289,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Regular',
   },
   submitFeedbackButton: {
-    backgroundColor: SecondaryColor,
+    backgroundColor: '#fff',
     paddingVertical: VS(12),
     paddingHorizontal: S(30),
     borderRadius: MS(25),

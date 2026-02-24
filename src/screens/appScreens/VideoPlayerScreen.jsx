@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Pressable,
   FlatList,
+  Platform,
 } from 'react-native';
 import Video from 'react-native-video';
 import {
@@ -17,21 +18,25 @@ import {
   useRoute,
   useIsFocused,
 } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   ArrowBackIcon,
   VolumeCloseIcon,
   VolumeUpIcon,
 } from '../../assets/Index';
 import { MS, S, VS } from '../../utils/Responsive';
-import { SecondaryColor } from '../../utils/Colors';
 
-const { width, height } = Dimensions.get('window');
+// Using 'screen' instead of 'window' to bypass status bar/navigation bar height issues
+const { width, height } = Dimensions.get('screen');
 
 const VideoItem = ({ item, isActive }) => {
   const [loading, setLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!isActive) {
@@ -54,7 +59,7 @@ const VideoItem = ({ item, isActive }) => {
           }
           source={{ uri: item?.video || item?.video_url }}
           style={styles.video}
-          resizeMode="cover"
+          resizeMode="cover" // This stretches the video to fill the 'height'
           repeat
           paused={!isActive || isPaused}
           muted={isMuted}
@@ -64,16 +69,20 @@ const VideoItem = ({ item, isActive }) => {
           playInBackground={false}
           playWhenInactive={false}
           ignoreSilentSwitch="ignore"
+          shutterColor="transparent"
         />
       </Pressable>
 
       {loading && (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color={SecondaryColor} />
+          <ActivityIndicator size="large" color={'#fff'} />
         </View>
       )}
 
-      <View style={styles.bottomView}>
+      {/* Adjusting bottom padding based on device safe area (e.g., iPhone notch) */}
+      <View
+        style={[styles.bottomView, { paddingBottom: insets.bottom + VS(30) }]}
+      >
         <View style={styles.infoRow}>
           <Image source={{ uri: item?.image }} style={styles.playerImage} />
 
@@ -102,6 +111,7 @@ const VideoPlayerScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const { videos, startIndex = 0 } = route.params;
 
   const [activeVideoIndex, setActiveVideoIndex] = useState(startIndex);
@@ -116,7 +126,7 @@ const VideoPlayerScreen = () => {
   }).current;
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 90,
+    itemVisiblePercentThreshold: 80,
   }).current;
 
   const renderItem = useCallback(
@@ -135,7 +145,7 @@ const VideoPlayerScreen = () => {
   );
 
   const getItemLayout = useCallback(
-    (data, index) => ({
+    (_, index) => ({
       length: height,
       offset: height * index,
       index,
@@ -145,7 +155,13 @@ const VideoPlayerScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar hidden />
+      {/* Translucent ensures the video renders UNDER the status bar area */}
+      <StatusBar
+        hidden={false}
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
 
       <FlatList
         data={videos}
@@ -160,18 +176,21 @@ const VideoPlayerScreen = () => {
         windowSize={3}
         maxToRenderPerBatch={1}
         initialNumToRender={1}
-        removeClippedSubviews
-        extraData={activeVideoIndex}
+        removeClippedSubviews={Platform.OS === 'android'}
+        snapToInterval={height}
+        snapToAlignment="start"
+        decelerationRate="fast"
       />
 
-      <SafeAreaView style={styles.header}>
+      {/* Positioned back button based on top safe area */}
+      <View style={[styles.header, { top: insets.top + MS(10) }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Image source={ArrowBackIcon} style={styles.backIcon} />
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     </View>
   );
 };
@@ -184,8 +203,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   videoContainer: {
-    width,
-    height,
+    width: width,
+    height: height,
     backgroundColor: '#000',
   },
   video: {
@@ -199,19 +218,17 @@ const styles = StyleSheet.create({
   },
   header: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    padding: MS(16),
-    zIndex: 2,
+    left: MS(16),
+    zIndex: 10,
   },
   backButton: {
     padding: MS(8),
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: MS(20),
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: MS(25),
   },
   backIcon: {
-    width: S(20),
-    height: VS(20),
+    width: S(22),
+    height: VS(22),
     tintColor: '#fff',
     resizeMode: 'contain',
   },
@@ -221,43 +238,39 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: MS(20),
-    paddingBottom: VS(20),
-    // backgroundColor: 'rgba(0,0,0,0.6)',
-    borderTopLeftRadius: MS(20),
-    borderTopRightRadius: MS(20),
     zIndex: 2,
   },
   infoRow: {
     flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   textWrapper: {
-    flex: 1,
-    paddingRight: S(12),
-    marginBottom: VS(15),
+    width: '80%',
+    marginBottom: VS(10),
   },
   videoTitle: {
     color: '#fff',
     fontSize: MS(16),
-    fontFamily: 'Manrope-Regular',
-    lineHeight: VS(20),
+    fontWeight: '600',
   },
   volumeButton: {
-    paddingLeft: MS(6),
     alignSelf: 'flex-end',
+    position: 'absolute',
+    bottom: VS(10),
+    right: 0,
   },
   volumeIcon: {
-    width: S(24),
-    height: VS(24),
+    width: S(28),
+    height: VS(28),
     tintColor: '#fff',
-    resizeMode: 'contain',
   },
   playerImage: {
-    width: MS(40),
-    height: MS(40),
-    borderRadius: MS(25),
-    borderWidth: 1,
+    width: MS(45),
+    height: MS(45),
+    borderRadius: MS(22.5),
+    borderWidth: 1.5,
     borderColor: '#fff',
-    marginBottom: VS(10),
+    marginBottom: VS(12),
   },
   touchableOverlay: {
     ...StyleSheet.absoluteFillObject,

@@ -16,11 +16,12 @@ import Toast from 'react-native-toast-message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { useSelector } from 'react-redux';
-import { HideIcon, ViewIcon } from '../../assets/Index';
+import { ArrowBackIcon, HideIcon, ViewIcon } from '../../assets/Index';
 import { S, VS, MS } from '../../utils/Responsive';
 import { UPDATE_PASSWORD } from '../../services/AuthServices';
 import { store } from '../../redux/store';
 import { setIsLogin } from '../../redux/Reducers/userReducer';
+import { BorderColor } from '../../utils/Colors';
 
 const PasswordSchema = Yup.object().shape({
   oldPassword: Yup.string().required('Old Password is required'),
@@ -50,7 +51,11 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Image source={ArrowBackIcon} style={styles.backIcon} />
+            </TouchableOpacity>
             <Text style={styles.brand}>FINNAN</Text>
+            <View style={{ width: S(20) }} />
           </View>
 
           <View style={styles.content}>
@@ -213,12 +218,23 @@ export default UpdatePasswordScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0B0B' },
-  header: { padding: MS(20), alignItems: 'center' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backIcon: {
+    width: S(20),
+    height: VS(20),
+    tintColor: '#fff',
+    resizeMode: 'contain',
+    marginLeft: S(16),
+  },
   brand: { color: '#fff', fontSize: MS(26), fontFamily: 'Helvetica-Bold' },
   content: { padding: MS(20) },
   title: {
     color: '#fff',
-    fontSize: MS(20),
+    fontSize: MS(18),
     fontFamily: 'Helvetica-Bold',
     marginBottom: VS(6),
   },
